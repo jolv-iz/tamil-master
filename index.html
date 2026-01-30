@@ -280,6 +280,47 @@
             font-weight: bold;
         }
 
+        /* Memory rating buttons */
+        .memory-btn {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .memory-btn:active {
+            transform: scale(0.95);
+        }
+        .memory-btn.dont-know {
+            border-color: var(--error);
+        }
+        .memory-btn.dont-know:active {
+            background: var(--error);
+            color: white;
+        }
+        .memory-btn.unsure {
+            border-color: #FF9800;
+        }
+        .memory-btn.unsure:active {
+            background: #FF9800;
+            color: white;
+        }
+        .memory-btn.know {
+            border-color: var(--success);
+        }
+        .memory-btn.know:active {
+            background: var(--success);
+            color: white;
+        }
+
     </style>
 </head>
 <body>
@@ -298,6 +339,11 @@
         <button id="btn-match" class="mode-btn" onclick="setMode('match')">Opposites</button>
         <button id="btn-list" class="mode-btn" onclick="setMode('list')">Vocab List</button>
     </div>
+    <div id="direction-toggle" style="display:flex; gap:5px; width:100%; justify-content:center; margin-top:5px;">
+        <button id="btn-en-ta" class="mode-btn active" onclick="setDirection('en-ta')" style="font-size:0.8rem; padding:6px 10px;">EN→TA</button>
+        <button id="btn-ta-en" class="mode-btn" onclick="setDirection('ta-en')" style="font-size:0.8rem; padding:6px 10px;">TA→EN</button>
+    </div>
+
 </div>
 
 <div id="game-container">
@@ -308,22 +354,34 @@
                 <div class="card__face card__face--front">
                     <div class="word-sub" id="fc-category">Time</div>
                     <div class="word-main" id="fc-front">Morning</div>
-                    <div class="hint">Tap to flip</div>
                 </div>
                 <div class="card__face card__face--back">
                     <div class="word-main" id="fc-back">Kaalai</div>
                     <div class="word-sub" id="fc-pronounce">Kaa-lai</div>
-                    <div class="hint hint-back">Tap to flip back</div>
                 </div>
             </div>
         </div>
-        <div class="nav-buttons">
+        <div class="nav-buttons" style="gap:10px; flex-wrap:wrap;">
+            <button class="memory-btn dont-know" onclick="rateMemory('dont-know')">
+                ❌<br><span style="font-size:0.75rem;">Don't Know</span>
+            </button>
+            <button class="memory-btn unsure" onclick="rateMemory('unsure')">
+                🤔<br><span style="font-size:0.75rem;">Not Sure</span>
+            </button>
+            <button class="memory-btn know" onclick="rateMemory('know')">
+                ✅<br><span style="font-size:0.75rem;">I Know It</span>
+            </button>
+        </div>
+        <div class="nav-buttons" style="margin-top:10px;">
             <button class="btn" onclick="prevCard()">←</button>
             <button class="btn" onclick="shuffleAndRestart()">🔀</button>
             <button class="btn" onclick="nextCard()">→</button>
         </div>
         <div style="text-align: center; margin-top: 10px; color: #888; font-size: 0.9rem;">
             Card <span id="current-index">1</span> of <span id="total-count">108</span>
+        </div>
+        <div style="text-align: center; margin-top: 5px; color: var(--primary); font-size: 0.85rem; font-weight:bold;">
+            Review Queue: <span id="review-count">0</span> | Mastered: <span id="mastered-count">0</span>
         </div>
     </div>
 
@@ -506,6 +564,11 @@
     let currentIndex = 0;
     let score = 0;
     let currentMode = 'flash';
+    let learningDirection = 'en-ta'; // 'en-ta' or 'ta-en'
+    
+    // Memory tracking for spaced repetition
+    let wordMemory = {}; // {wordId: {level: 0-2, lastReview: timestamp, reviewCount: 0}}
+    // level 0 = don't know, level 1 = unsure, level 2 = know
     
     // Quiz stats tracking
     let quizStats = {
@@ -514,6 +577,102 @@
         currentStreak: 0,
         bestStreak: 0
     };
+
+    // Load memory data from localStorage
+    function loadMemory() {
+        const saved = localStorage.getItem('tamilMasterMemory');
+        if (saved) {
+            wordMemory = JSON.parse(saved);
+        } else {
+            // Initialize all words with level 0
+            data.forEach(item => {
+                wordMemory[item.id] = {
+                    level: 0,
+                    lastReview: 0,
+                    reviewCount: 0
+                };
+            });
+        }
+    }
+
+    function saveMemory() {
+        localStorage.setItem('tamilMasterMemory', JSON.stringify(wordMemory));
+    }
+
+    function rateMemory(rating) {
+        const item = currentList[currentIndex];
+        if (!wordMemory[item.id]) {
+            wordMemory[item.id] = {level: 0, lastReview: 0, reviewCount: 0};
+        }
+        
+        const now = Date.now();
+        wordMemory[item.id].lastReview = now;
+        wordMemory[item.id].reviewCount++;
+        
+        if (rating === 'dont-know') {
+            wordMemory[item.id].level = 0;
+        } else if (rating === 'unsure') {
+            wordMemory[item.id].level = 1;
+        } else if (rating === 'know') {
+            wordMemory[item.id].level = 2;
+        }
+        
+        saveMemory();
+        updateMemoryStats();
+        
+        // Auto-advance to next card
+        setTimeout(() => {
+            nextCard();
+        }, 300);
+    }
+
+    function updateMemoryStats() {
+        let reviewNeeded = 0;
+        let mastered = 0;
+        
+        currentList.forEach(item => {
+            const mem = wordMemory[item.id] || {level: 0};
+            if (mem.level === 0 || mem.level === 1) {
+                reviewNeeded++;
+            } else if (mem.level === 2) {
+                mastered++;
+            }
+        });
+        
+        document.getElementById('review-count').innerText = reviewNeeded;
+        document.getElementById('mastered-count').innerText = mastered;
+    }
+
+    function setDirection(direction) {
+        learningDirection = direction;
+        document.querySelectorAll('#direction-toggle .mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-${direction}`).classList.add('active');
+        
+        // Reload current card with new direction
+        if (currentMode === 'flash') {
+            resetCard();
+            setTimeout(() => loadCard(), 100);
+        } else if (currentMode === 'quiz') {
+            generateQuiz();
+        }
+    }
+
+    // Smart sorting: prioritize words that need review
+    function sortByMemoryLevel() {
+        currentList.sort((a, b) => {
+            const memA = wordMemory[a.id] || {level: 0, lastReview: 0};
+            const memB = wordMemory[b.id] || {level: 0, lastReview: 0};
+            
+            // First sort by level (lower level = needs more review)
+            if (memA.level !== memB.level) {
+                return memA.level - memB.level;
+            }
+            
+            // Then by last review time (older = needs review)
+            return memA.lastReview - memB.lastReview;
+        });
+        currentIndex = 0;
+    }
 
     // Load stats from localStorage
     function loadStats() {
@@ -624,8 +783,10 @@
     window.onload = function() {
         populateCategories();
         loadStats();
-        shuffleList(); // Randomize flashcard order
+        loadMemory();
+        sortByMemoryLevel(); // Show words that need review first
         loadCard();
+        updateMemoryStats();
     };
 
     function setMode(mode) {
@@ -633,6 +794,14 @@
         // Buttons
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`btn-${mode}`).classList.add('active');
+
+        // Show/hide direction toggle (only for Learn and Quiz modes)
+        const directionToggle = document.getElementById('direction-toggle');
+        if (mode === 'flash' || mode === 'quiz') {
+            directionToggle.style.display = 'flex';
+        } else {
+            directionToggle.style.display = 'none';
+        }
 
         // Areas
         document.getElementById('area-flash').style.display = 'none';
@@ -643,6 +812,7 @@
         if(mode === 'flash') {
             document.getElementById('area-flash').style.display = 'block';
             filterCategory();
+            updateMemoryStats();
         } else if (mode === 'quiz') {
             document.getElementById('area-quiz').style.display = 'flex';
             updateStatsDisplay(); // Show current stats
@@ -677,11 +847,12 @@
             currentList = data.filter(item => item.cat === cat);
         }
         
-        shuffleList(); // Randomize the filtered list
+        sortByMemoryLevel(); // Sort by what needs review
         
         if(currentMode === 'flash') {
             resetCard();
             loadCard();
+            updateMemoryStats();
         } else if (currentMode === 'quiz') {
             generateQuiz();
         }
@@ -690,12 +861,30 @@
     // --- FLASHCARD LOGIC ---
     function loadCard() {
         const item = currentList[currentIndex];
+        const mem = wordMemory[item.id] || {level: 0};
+        
         document.getElementById("fc-category").innerText = item.cat;
-        document.getElementById("fc-front").innerText = item.en;
-        document.getElementById("fc-back").innerText = item.ta;
-        document.getElementById("fc-pronounce").innerText = item.pron ? item.pron : "";
+        
+        if (learningDirection === 'en-ta') {
+            // English to Tamil
+            document.getElementById("fc-front").innerText = item.en;
+            document.getElementById("fc-back").innerText = item.ta;
+            document.getElementById("fc-pronounce").innerText = item.pron ? item.pron : "";
+        } else {
+            // Tamil to English
+            document.getElementById("fc-front").innerText = item.ta;
+            document.getElementById("fc-back").innerText = item.en;
+            document.getElementById("fc-pronounce").innerText = item.pron ? `(${item.pron})` : "";
+        }
+        
         document.getElementById("current-index").innerText = currentIndex + 1;
         document.getElementById("total-count").innerText = currentList.length;
+        
+        // Add visual indicator for memory level
+        const card = document.getElementById("card");
+        card.style.borderLeft = mem.level === 2 ? "5px solid #4CAF50" : 
+                                mem.level === 1 ? "5px solid #FF9800" : 
+                                "5px solid #F44336";
     }
 
     function flipCard() { document.getElementById("card").classList.toggle("is-flipped"); }
@@ -717,8 +906,9 @@
     
     function shuffleAndRestart() {
         resetCard();
-        shuffleList();
+        sortByMemoryLevel(); // Resort by priority, not random
         loadCard();
+        updateMemoryStats();
     }
 
     // --- QUIZ LOGIC ---
@@ -727,7 +917,13 @@
         const randIndex = Math.floor(Math.random() * currentList.length);
         const questionItem = currentList[randIndex];
         
-        document.getElementById("quiz-q").innerText = `What is "${questionItem.en}"?`;
+        if (learningDirection === 'en-ta') {
+            // English to Tamil
+            document.getElementById("quiz-q").innerText = `What is "${questionItem.en}"?`;
+        } else {
+            // Tamil to English
+            document.getElementById("quiz-q").innerText = `What is "${questionItem.ta}"?`;
+        }
 
         let options = [questionItem];
         while (options.length < 4) {
@@ -741,7 +937,13 @@
         options.forEach(opt => {
             let btn = document.createElement("div");
             btn.classList.add("option-btn");
-            btn.innerText = opt.ta;
+            
+            if (learningDirection === 'en-ta') {
+                btn.innerText = opt.ta;
+            } else {
+                btn.innerText = opt.en;
+            }
+            
             btn.onclick = () => checkQuizAnswer(btn, opt.id, questionItem.id);
             container.appendChild(btn);
         });
