@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Tamil Master</title>
+    <style>
+        :root {
+            --primary: #FF5722;
+            --secondary: #FFCCBC;
+            --text: #333;
+            --white: #fff;
+            --bg: #f4f4f9;
+            --success: #4CAF50;
+            --error: #F44336;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            color: var(--text);
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Header */
+        header {
+            width: 100%;
+            background: var(--primary);
+            color: var(--white);
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+
+        /* Controls */
+        .controls {
+            padding: 10px;
+            width: 90%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+            background: white;
+            flex-grow: 1;
+        }
+
+        .mode-btn {
+            background: var(--white);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Game Area */
+        #game-container {
+            flex-grow: 1;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* --- FLASHCARD STYLES --- */
+        .scene {
+            width: 100%;
+            height: 300px;
+            perspective: 600px;
+            cursor: pointer;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card.is-flipped { transform: rotateY(180deg); }
+
+        .card__face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .card__face--front { background: var(--white); }
+        .card__face--back { background: var(--primary); color: var(--white); transform: rotateY(180deg); }
+
+        .word-main { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
+        .word-sub { font-size: 1rem; opacity: 0.8; }
+        .hint { font-size: 0.8rem; color: #888; margin-top: auto; }
+        .hint-back { color: rgba(255,255,255,0.7); }
+
+        /* --- QUIZ STYLES --- */
+        .quiz-container { width: 100%; display: none; flex-direction: column; }
+        .quiz-question {
+            font-size: 1.5rem; text-align: center; margin-bottom: 20px; font-weight: bold;
+            padding: 20px; background: white; border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-btn {
+            background: white; border: 2px solid var(--primary); color: var(--text);
+            padding: 15px; border-radius: 10px; font-size: 1rem; cursor: pointer;
+            min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center;
+            transition: all 0.2s;
+        }
+        .option-btn.correct { background: var(--success); color: white; border-color: var(--success); }
+        .option-btn.wrong { background: var(--error); color: white; border-color: var(--error); }
+
+        /* --- MATCHING GAME STYLES --- */
+        .match-container { 
+            width: 100%; 
+            display: none; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            height: 100%;
+            align-content: center;
+        }
+        .match-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .match-card.selected { border-color: var(--primary); background: var(--secondary); transform: scale(1.02); }
+        .match-card.matched { visibility: hidden; opacity: 0; pointer-events: none; }
+        .match-card b { font-size: 1.1rem; }
+        .match-card small { font-size: 0.75rem; color: #666; margin-top: 4px;}
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex; gap: 20px; margin-top: 20px; width: 100%; justify-content: center;
+        }
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 24px;
+            border-radius: 50px; font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .score-board { text-align: center; margin-top: 15px; font-weight: bold; color: var(--primary); height: 20px;}
+
+        /* Stats tracking */
+        .stats-container {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9rem;
+        }
+        .stat-label { color: #666; }
+        .stat-value { font-weight: bold; color: var(--primary); }
+        .reset-btn {
+            background: #ccc;
+            color: var(--text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Vocab List styles */
+        .vocab-list-container {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .vocab-category {
+            margin-bottom: 20px;
+        }
+        .vocab-category-title {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+        .vocab-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .vocab-en {
+            font-weight: bold;
+            color: var(--text);
+        }
+        .vocab-ta {
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .vocab-pron {
+            grid-column: 1 / -1;
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+        }
+        .vocab-count {
+            text-align: center;
+            padding: 10px;
+            background: var(--secondary);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Tamil Master</h1>
+</header>
+
+<div class="controls">
+    <select id="categoryFilter" onchange="filterCategory()">
+        <option value="All">All Categories</option>
+    </select>
+    <div style="display:flex; gap:5px; width:100%; justify-content:center; flex-wrap:wrap;">
+        <button id="btn-flash" class="mode-btn active" onclick="setMode('flash')">Learn</button>
+        <button id="btn-quiz" class="mode-btn" onclick="setMode('quiz')">Quiz</button>
+        <button id="btn-match" class="mode-btn" onclick="setMode('match')">Opposites</button>
+        <button id="btn-list" class="mode-btn" onclick="setMode('list')">Vocab List</button>
+    </div>
+</div>
+
+<div id="game-container">
+    
+    <div id="area-flash" style="width: 100%;">
+        <div class="scene" onclick="flipCard()">
+            <div class="card" id="card">
+                <div class="card__face card__face--front">
+                    <div class="word-sub" id="fc-category">Time</div>
+                    <div class="word-main" id="fc-front">Morning</div>
+                    <div class="hint">Tap to flip</div>
+                </div>
+                <div class="card__face card__face--back">
+                    <div class="word-main" id="fc-back">Kaalai</div>
+                    <div class="word-sub" id="fc-pronounce">Kaa-lai</div>
+                    <div class="hint hint-back">Tap to flip back</div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn" onclick="prevCard()">←</button>
+            <button class="btn" onclick="shuffleAndRestart()">🔀</button>
+            <button class="btn" onclick="nextCard()">→</button>
+        </div>
+        <div style="text-align: center; margin-top: 10px; color: #888; font-size: 0.9rem;">
+            Card <span id="current-index">1</span> of <span id="total-count">108</span>
+        </div>
+    </div>
+
+    <div id="area-quiz" class="quiz-container">
+        <div class="score-board">Score: <span id="quiz-score">0</span></div>
+        <div class="quiz-question" id="quiz-q">What is "Morning"?</div>
+        <div class="options-grid" id="options-box"></div>
+        <div class="score-board" id="quiz-feedback"></div>
+        <div class="nav-buttons">
+            <button class="btn" onclick="generateQuiz()">Next Question</button>
+        </div>
+        <div class="stats-container">
+            <div class="stat-row">
+                <span class="stat-label">Questions Answered:</span>
+                <span class="stat-value" id="total-answered">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Correct Answers:</span>
+                <span class="stat-value" id="total-correct">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Accuracy:</span>
+                <span class="stat-value" id="accuracy">0%</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Current Streak:</span>
+                <span class="stat-value" id="streak">0</span>
+            </div>
+            <button class="reset-btn" onclick="resetStats()">Reset Stats</button>
+        </div>
+    </div>
+
+    <div id="area-match" style="width:100%; display:none; flex-direction:column; align-items:center;">
+        <div style="margin-bottom:10px; font-weight:bold; color:var(--primary)">Tap a word, then tap its opposite!</div>
+        <div id="match-grid" class="match-container"></div>
+        <div class="nav-buttons" id="match-next-btn" style="display:none">
+            <button class="btn" onclick="initMatchGame()">Next Level</button>
+        </div>
+    </div>
+
+    <div id="area-list" class="vocab-list-container">
+        <div class="vocab-count">Total Vocabulary: <span id="vocab-total">108</span> words</div>
+        <div id="vocab-list-content"></div>
+    </div>
+
+</div>
+
+<script>
+    // --- DATA ---
+    const data = [
+        {id:1, en:"Morning", ta:"Kaalai", pron:"Kaa-lai", cat:"Time"},
+        {id:2, en:"Afternoon", ta:"Madhiyam", pron:"Ma-dhe-ya-im", cat:"Time"},
+        {id:3, en:"Evening", ta:"Maalai", pron:"Maa-lai / Saaingalam", cat:"Time"},
+        {id:4, en:"Night", ta:"Rathiri", pron:"Raath-ree", cat:"Time"},
+        {id:5, en:"Good Morning", ta:"Kaalai Vanakkam", pron:"", cat:"Time"},
+        {id:6, en:"Good Afternoon", ta:"Madhiyam Vanakkam", pron:"", cat:"Time"},
+        {id:7, en:"Good Evening", ta:"Maalai Vanakkam", pron:"", cat:"Time"},
+        {id:8, en:"Good night", ta:"Rathiri Vanakkam", pron:"", cat:"Time"},
+        {id:9, en:"Breakfast", ta:"Kaalai Saapadu", pron:"Food", cat:"Time/Food"},
+        {id:10, en:"Lunch", ta:"Madhiyam Sapadu", pron:"", cat:"Time/Food"},
+        {id:11, en:"Dinner", ta:"Rathiri Sapadu", pron:"", cat:"Time/Food"},
+        {id:12, en:"Father", ta:"Appa", pron:"Aa-ip-paa", cat:"Family"},
+        {id:13, en:"Mother", ta:"Amma", pron:"Aa-im-maa", cat:"Family"},
+        {id:14, en:"Grandfather", ta:"Thatha", pron:"Thaa-ith-tha", cat:"Family"},
+        {id:15, en:"Grandmother", ta:"Paati", pron:"Paa-it-tea", cat:"Family"},
+        {id:16, en:"Older brother", ta:"Anna", pron:"Aa-in-naa", cat:"Family"},
+        {id:17, en:"Older sister", ta:"Akka", pron:"Aa-ik-kaa", cat:"Family"},
+        {id:18, en:"Younger brother", ta:"Thumbi", pron:"Thumb--bee", cat:"Family"},
+        {id:19, en:"Younger sister", ta:"Thangachi", pron:"Thaa-nga-ga-chee", cat:"Family"},
+        {id:20, en:"Uncle", ta:"Mama", pron:"Maa-im-ma", cat:"Family"},
+        {id:21, en:"Aunty", ta:"Maami / Athai", pron:"Maa-mee / aa-ith-ai", cat:"Family"},
+        {id:22, en:"Husband", ta:"Kanavan", pron:"Ka-na-va-in / Purushan", cat:"Family"},
+        {id:23, en:"Wife", ta:"Manaivi", pron:"Maa-nai-vee / Pondatii", cat:"Family"},
+        {id:24, en:"Boy/Son", ta:"Paiyan", pron:"Paa-ai-ya-in", cat:"Noun"},
+        {id:25, en:"Girl/Daughter", ta:"Ponnu", pron:"Poo-in-nu", cat:"Noun"},
+        {id:26, en:"What", ta:"Yenna", pron:"Ye-in-na", cat:"Question"},
+        {id:27, en:"When", ta:"Yeppo", pron:"Yup-po", cat:"Question"},
+        {id:28, en:"Where", ta:"Yenga", pron:"Ye-ing-ga", cat:"Question"},
+        {id:29, en:"Who", ta:"Yaaru", pron:"Yaa-roo", cat:"Question"},
+        {id:30, en:"Why", ta:"Yaen", pron:"Yae-in", cat:"Question"},
+        {id:31, en:"How", ta:"Eppadi", pron:"Yup-pa-di", cat:"Question"},
+        {id:32, en:"How many", ta:"Yethana", pron:"Ye-ith-tha-na", cat:"Question"},
+        {id:33, en:"How much", ta:"Yevlo", pron:"Ye-iv-lo", cat:"Question"},
+        {id:34, en:"From where", ta:"Yenga Irundhu", pron:"Ye-ing-ga Ee-ru-indh-uu", cat:"Question"},
+        {id:35, en:"For what", ta:"Yethuku", pron:"Ye-thu-ku / Ye-thu-ka-ga", cat:"Question"},
+        {id:36, en:"Which", ta:"Yethu", pron:"Ye-thu", cat:"Question"},
+        {id:37, en:"Whose", ta:"Yaarodathu", pron:"Yaa-ro-da-thu", cat:"Question"},
+        {id:38, en:"I", ta:"Naan", pron:"Naa-in", cat:"Pronoun"},
+        {id:39, en:"You", ta:"Neenga", pron:"Nee-ing-ga", cat:"Pronoun"},
+        {id:40, en:"He", ta:"Avaru", pron:"Aa-va-ru", cat:"Pronoun"},
+        {id:41, en:"She/They", ta:"Avanga", pron:"Aa-vang-ga", cat:"Pronoun"},
+        {id:42, en:"We (Inc. Listener)", ta:"Namma", pron:"Na-im-ma", cat:"Pronoun"},
+        {id:43, en:"We (Exc. Listener)", ta:"Naanga", pron:"Naa-ing-ga", cat:"Pronoun"},
+        {id:44, en:"Up/Above/On", ta:"Maela", pron:"MAY-le", cat:"Direction"},
+        {id:45, en:"Below/Under/Down", ta:"Keela", pron:"KEY-le", cat:"Direction"},
+        {id:46, en:"Front/Before", ta:"Munnadi", pron:"MU-naddi", cat:"Direction"},
+        {id:47, en:"Back/After", ta:"Pinnadi", pron:"PI-naddi", cat:"Direction"},
+        {id:48, en:"Small", ta:"Chinnathu / Chinna", pron:"CHIN-ath-e", cat:"Adjective"},
+        {id:49, en:"Big", ta:"Perusu / Periya", pron:"Pae-ree-ya", cat:"Adjective"},
+        {id:50, en:"Little/Less", ta:"Konjam / Kammi", pron:"Koo-in-jam", cat:"Adjective"},
+        {id:51, en:"More/Very/A lot", ta:"Neraiya / Romba", pron:"NE-ray-uh", cat:"Adjective"},
+        {id:52, en:"Many", ta:"Adhigam", pron:"UH-di-gum", cat:"Adjective"},
+        {id:53, en:"This", ta:"Idhu / Indha", pron:"", cat:"Adjective"},
+        {id:54, en:"That", ta:"Adhu / Andha", pron:"", cat:"Adjective"},
+        {id:55, en:"Here", ta:"Inga", pron:"", cat:"Adverb/Place"},
+        {id:56, en:"There", ta:"Anga", pron:"", cat:"Adverb/Place"},
+        {id:57, en:"Now", ta:"Ippo", pron:"", cat:"Adverb/Time"},
+        {id:58, en:"Then/while", ta:"Appo", pron:"", cat:"Adverb/Time"},
+        {id:59, en:"Truth", ta:"Unmai", pron:"", cat:"Noun"},
+        {id:60, en:"Lie", ta:"Poi", pron:"", cat:"Noun"},
+        {id:61, en:"Correct/Right", ta:"Sari", pron:"Cherry", cat:"Adjective"},
+        {id:62, en:"Wrong/Mistake", ta:"Thappu", pron:"", cat:"Noun"},
+        {id:63, en:"Bitter", ta:"Kasapu", pron:"", cat:"Taste"},
+        {id:64, en:"Sweet", ta:"Inipu", pron:"", cat:"Taste"},
+        {id:65, en:"Sour", ta:"Pulipu", pron:"", cat:"Taste"},
+        {id:66, en:"Salt", ta:"Uppu", pron:"", cat:"Taste"},
+        {id:67, en:"Tart", ta:"Thuvarpu", pron:"", cat:"Taste"},
+        {id:68, en:"Spicy", ta:"Kaaram", pron:"", cat:"Taste"},
+        {id:69, en:"Inside", ta:"Ulla", pron:"", cat:"Location"},
+        {id:70, en:"Outside", ta:"Veliya", pron:"", cat:"Location"},
+        {id:71, en:"Old", ta:"Palaya / Palasu", pron:"", cat:"Adjective"},
+        {id:72, en:"New", ta:"Pudhu / Pudhusu", pron:"", cat:"Adjective"},
+        {id:73, en:"Yesterday", ta:"Nethu", pron:"", cat:"Time"},
+        {id:74, en:"Today", ta:"Inaiku", pron:"", cat:"Time"},
+        {id:75, en:"Tomorrow", ta:"Naalaiku", pron:"", cat:"Time"},
+        {id:76, en:"House", ta:"Veedu", pron:"", cat:"Noun"},
+        {id:77, en:"In the House", ta:"Veetla", pron:"", cat:"Noun"},
+        {id:78, en:"To the House", ta:"Veetuku", pron:"", cat:"Noun"},
+        {id:79, en:"Yes", ta:"Aama", pron:"", cat:"Word"},
+        {id:80, en:"No/Not", ta:"illa", pron:"", cat:"Word"},
+        {id:81, en:"But", ta:"Aana", pron:"", cat:"Word"},
+        {id:82, en:"Because", ta:"Yaena", pron:"", cat:"Word"},
+        {id:83, en:"And/After", ta:"Apram", pron:"", cat:"Word"},
+        {id:84, en:"Name/People", ta:"Peru", pron:"", cat:"Noun"},
+        {id:85, en:"Like (Positive)", ta:"Pudikum", pron:"Po-de-ku-im", cat:"Personal Pronouns"},
+        {id:86, en:"Like (Negative)", ta:"Pudikathu", pron:"Po-de-kaa-thu", cat:"Personal Pronouns"},
+        {id:87, en:"Like? (Positive)", ta:"Pudikuma?", pron:"", cat:"Personal Pronouns"},
+        {id:88, en:"Like? (Negative)", ta:"Pudikatha?", pron:"", cat:"Personal Pronouns"},
+        {id:89, en:"Want (Positive)", ta:"Venum", pron:"Ve-nu-im", cat:"Personal Pronouns"},
+        {id:90, en:"Want (Negative)", ta:"Vendam", pron:"Ve-in-da-im", cat:"Personal Pronouns"},
+        {id:91, en:"Want? (Positive)", ta:"Venuma?", pron:"", cat:"Personal Pronouns"},
+        {id:92, en:"Want? (Negative)", ta:"Vendama?", pron:"", cat:"Personal Pronouns"},
+        {id:93, en:"Understand (Positive)", ta:"Puriyum", pron:"Po-re-u-im", cat:"Personal Pronouns"},
+        {id:94, en:"Understand (Negative)", ta:"Puriyathu", pron:"Pu-re-ya-thu", cat:"Personal Pronouns"},
+        {id:95, en:"Understand? (Positive)", ta:"Puriyuma?", pron:"", cat:"Personal Pronouns"},
+        {id:96, en:"Understand? (Negative)", ta:"Puriyatha?", pron:"", cat:"Personal Pronouns"},
+        {id:97, en:"Know (Positive)", ta:"Theriyum", pron:"Thae-re-yum", cat:"Personal Pronouns"},
+        {id:98, en:"Know (Negative)", ta:"Theriyathu", pron:"Thae-re-ya-thu", cat:"Personal Pronouns"},
+        {id:99, en:"Know? (Positive)", ta:"Theriyuma?", pron:"", cat:"Personal Pronouns"},
+        {id:100, en:"Know? (Negative)", ta:"Theriyatha?", pron:"", cat:"Personal Pronouns"},
+        {id:101, en:"Enough-Quantity (Positive)", ta:"Podhum", pron:"Po-dhu-im", cat:"Personal Pronouns"},
+        {id:102, en:"Enough-Measurement (Positive)", ta:"Pathum", pron:"Pa-ith-um", cat:"Personal Pronouns"},
+        {id:103, en:"Enough-Quantity (Negative)", ta:"Podhathu", pron:"Po-dha-thu", cat:"Personal Pronouns"},
+        {id:104, en:"Enough-Measurement (Negative)", ta:"Pathathu", pron:"Pa-ith-tha-thu", cat:"Personal Pronouns"},
+        {id:105, en:"Enough-Quantity? (Positive)", ta:"Podhuma?", pron:"", cat:"Personal Pronouns"},
+        {id:106, en:"Enough-Measurement? (Positive)", ta:"Pathuma?", pron:"", cat:"Personal Pronouns"},
+        {id:107, en:"Enough-Quantity? (Negative)", ta:"Podhatha?", pron:"", cat:"Personal Pronouns"},
+        {id:108, en:"Enough-Measurement? (Negative)", ta:"Pathatha?", pron:"", cat:"Personal Pronouns"}
+    ];
+
+    // DEFINED OPPOSITES (Pair IDs)
+    const oppositePairs = [
+        [1, 4],   // Morning - Night
+        [44, 45], // Up - Down
+        [46, 47], // Front - Back
+        [48, 49], // Small - Big
+        [50, 51], // Less - More
+        [53, 54], // This - That
+        [55, 56], // Here - There
+        [57, 58], // Now - Then
+        [59, 60], // Truth - Lie
+        [61, 62], // Right - Wrong
+        [69, 70], // Inside - Outside
+        [71, 72], // Old - New
+        [79, 80]  // Yes - No
+    ];
+
+    // VARIABLES
+    let currentList = [...data];
+    let currentIndex = 0;
+    let score = 0;
+    let currentMode = 'flash';
+    
+    // Quiz stats tracking
+    let quizStats = {
+        totalAnswered: 0,
+        totalCorrect: 0,
+        currentStreak: 0,
+        bestStreak: 0
+    };
+
+    // Load stats from localStorage
+    function loadStats() {
+        const saved = localStorage.getItem('tamilMasterStats');
+        if (saved) {
+            quizStats = JSON.parse(saved);
+            updateStatsDisplay();
+        }
+    }
+
+    function saveStats() {
+        localStorage.setItem('tamilMasterStats', JSON.stringify(quizStats));
+    }
+
+    function updateStatsDisplay() {
+        document.getElementById('total-answered').innerText = quizStats.totalAnswered;
+        document.getElementById('total-correct').innerText = quizStats.totalCorrect;
+        const accuracy = quizStats.totalAnswered > 0 
+            ? Math.round((quizStats.totalCorrect / quizStats.totalAnswered) * 100) 
+            : 0;
+        document.getElementById('accuracy').innerText = accuracy + '%';
+        document.getElementById('streak').innerText = quizStats.currentStreak;
+    }
+
+    function resetStats() {
+        if (confirm('Are you sure you want to reset all quiz statistics?')) {
+            quizStats = {
+                totalAnswered: 0,
+                totalCorrect: 0,
+                currentStreak: 0,
+                bestStreak: 0
+            };
+            score = 0;
+            document.getElementById('quiz-score').innerText = 0;
+            saveStats();
+            updateStatsDisplay();
+        }
+    }
+
+    // Shuffle the current list for random flashcard order
+    function shuffleList() {
+        currentList = [...currentList].sort(() => Math.random() - 0.5);
+        currentIndex = 0;
+    }
+
+    // Generate vocabulary list organized by category
+    function generateVocabList() {
+        const container = document.getElementById('vocab-list-content');
+        container.innerHTML = '';
+        
+        // Group words by category
+        const categories = {};
+        data.forEach(item => {
+            if (!categories[item.cat]) {
+                categories[item.cat] = [];
+            }
+            categories[item.cat].push(item);
+        });
+        
+        // Sort categories alphabetically
+        const sortedCategories = Object.keys(categories).sort();
+        
+        // Create sections for each category
+        sortedCategories.forEach(cat => {
+            const section = document.createElement('div');
+            section.className = 'vocab-category';
+            
+            const title = document.createElement('div');
+            title.className = 'vocab-category-title';
+            title.innerText = `${cat} (${categories[cat].length})`;
+            section.appendChild(title);
+            
+            // Sort words within category by English
+            categories[cat].sort((a, b) => a.en.localeCompare(b.en));
+            
+            categories[cat].forEach(item => {
+                const vocabItem = document.createElement('div');
+                vocabItem.className = 'vocab-item';
+                
+                const enDiv = document.createElement('div');
+                enDiv.className = 'vocab-en';
+                enDiv.innerText = item.en;
+                
+                const taDiv = document.createElement('div');
+                taDiv.className = 'vocab-ta';
+                taDiv.innerText = item.ta;
+                
+                vocabItem.appendChild(enDiv);
+                vocabItem.appendChild(taDiv);
+                
+                if (item.pron) {
+                    const pronDiv = document.createElement('div');
+                    pronDiv.className = 'vocab-pron';
+                    pronDiv.innerText = `Pronunciation: ${item.pron}`;
+                    vocabItem.appendChild(pronDiv);
+                }
+                
+                section.appendChild(vocabItem);
+            });
+            
+            container.appendChild(section);
+        });
+        
+        document.getElementById('vocab-total').innerText = data.length;
+    }
+
+    // INITIALIZATION
+    window.onload = function() {
+        populateCategories();
+        loadStats();
+        shuffleList(); // Randomize flashcard order
+        loadCard();
+    };
+
+    function setMode(mode) {
+        currentMode = mode;
+        // Buttons
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-${mode}`).classList.add('active');
+
+        // Areas
+        document.getElementById('area-flash').style.display = 'none';
+        document.getElementById('area-quiz').style.display = 'none';
+        document.getElementById('area-match').style.display = 'none';
+        document.getElementById('area-list').style.display = 'none';
+
+        if(mode === 'flash') {
+            document.getElementById('area-flash').style.display = 'block';
+            filterCategory();
+        } else if (mode === 'quiz') {
+            document.getElementById('area-quiz').style.display = 'flex';
+            updateStatsDisplay(); // Show current stats
+            filterCategory();
+            generateQuiz();
+        } else if (mode === 'match') {
+            document.getElementById('area-match').style.display = 'flex';
+            initMatchGame();
+        } else if (mode === 'list') {
+            document.getElementById('area-list').style.display = 'flex';
+            generateVocabList();
+        }
+    }
+
+    // Populate Categories
+    function populateCategories() {
+        const categories = [...new Set(data.map(item => item.cat))];
+        const select = document.getElementById("categoryFilter");
+        categories.forEach(cat => {
+            let option = document.createElement("option");
+            option.value = cat;
+            option.text = cat;
+            select.appendChild(option);
+        });
+    }
+
+    function filterCategory() {
+        const cat = document.getElementById("categoryFilter").value;
+        if (cat === "All") {
+            currentList = [...data];
+        } else {
+            currentList = data.filter(item => item.cat === cat);
+        }
+        
+        shuffleList(); // Randomize the filtered list
+        
+        if(currentMode === 'flash') {
+            resetCard();
+            loadCard();
+        } else if (currentMode === 'quiz') {
+            generateQuiz();
+        }
+    }
+
+    // --- FLASHCARD LOGIC ---
+    function loadCard() {
+        const item = currentList[currentIndex];
+        document.getElementById("fc-category").innerText = item.cat;
+        document.getElementById("fc-front").innerText = item.en;
+        document.getElementById("fc-back").innerText = item.ta;
+        document.getElementById("fc-pronounce").innerText = item.pron ? item.pron : "";
+        document.getElementById("current-index").innerText = currentIndex + 1;
+        document.getElementById("total-count").innerText = currentList.length;
+    }
+
+    function flipCard() { document.getElementById("card").classList.toggle("is-flipped"); }
+    function resetCard() { document.getElementById("card").classList.remove("is-flipped"); }
+    function nextCard() {
+        resetCard();
+        setTimeout(() => {
+            currentIndex = (currentIndex < currentList.length - 1) ? currentIndex + 1 : 0;
+            loadCard();
+        }, 200);
+    }
+    function prevCard() {
+        resetCard();
+        setTimeout(() => {
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : currentList.length - 1;
+            loadCard();
+        }, 200);
+    }
+    
+    function shuffleAndRestart() {
+        resetCard();
+        shuffleList();
+        loadCard();
+    }
+
+    // --- QUIZ LOGIC ---
+    function generateQuiz() {
+        document.getElementById("quiz-feedback").innerText = "";
+        const randIndex = Math.floor(Math.random() * currentList.length);
+        const questionItem = currentList[randIndex];
+        
+        document.getElementById("quiz-q").innerText = `What is "${questionItem.en}"?`;
+
+        let options = [questionItem];
+        while (options.length < 4) {
+            let randomOpt = data[Math.floor(Math.random() * data.length)];
+            if (!options.includes(randomOpt)) options.push(randomOpt);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        const container = document.getElementById("options-box");
+        container.innerHTML = "";
+        options.forEach(opt => {
+            let btn = document.createElement("div");
+            btn.classList.add("option-btn");
+            btn.innerText = opt.ta;
+            btn.onclick = () => checkQuizAnswer(btn, opt.id, questionItem.id);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkQuizAnswer(btnElement, selectedId, correctId) {
+        const allBtns = document.querySelectorAll(".option-btn");
+        allBtns.forEach(b => b.onclick = null);
+        
+        quizStats.totalAnswered++;
+        
+        if (selectedId === correctId) {
+            btnElement.classList.add("correct");
+            score++;
+            quizStats.totalCorrect++;
+            quizStats.currentStreak++;
+            if (quizStats.currentStreak > quizStats.bestStreak) {
+                quizStats.bestStreak = quizStats.currentStreak;
+            }
+            document.getElementById("quiz-score").innerText = score;
+            document.getElementById("quiz-feedback").innerText = "Correct! 🎉";
+        } else {
+            btnElement.classList.add("wrong");
+            quizStats.currentStreak = 0;
+            document.getElementById("quiz-feedback").innerText = "Oops! Try again.";
+            allBtns.forEach(b => {
+                if (b.innerText === data.find(d => d.id === correctId).ta) b.classList.add("correct");
+            });
+        }
+        
+        saveStats();
+        updateStatsDisplay();
+    }
+
+    // --- OPPOSITES MATCHING LOGIC ---
+    let firstSelection = null;
+    let matchCount = 0;
+
+    function initMatchGame() {
+        document.getElementById("match-next-btn").style.display = 'none';
+        const grid = document.getElementById("match-grid");
+        grid.style.display = 'grid';
+        grid.innerHTML = "";
+        firstSelection = null;
+        matchCount = 0;
+
+        // Pick 4 random pairs
+        let shuffledPairs = [...oppositePairs].sort(() => Math.random() - 0.5).slice(0, 4);
+        let gameCards = [];
+
+        shuffledPairs.forEach(pair => {
+            let item1 = data.find(d => d.id === pair[0]);
+            let item2 = data.find(d => d.id === pair[1]);
+            
+            gameCards.push({ id: item1.id, text: item1.ta, sub: item1.en, pairId: item2.id });
+            gameCards.push({ id: item2.id, text: item2.ta, sub: item2.en, pairId: item1.id });
+        });
+
+        // Shuffle grid
+        gameCards.sort(() => Math.random() - 0.5);
+
+        gameCards.forEach(cardData => {
+            let card = document.createElement("div");
+            card.classList.add("match-card");
+            card.dataset.id = cardData.id;
+            card.dataset.pairId = cardData.pairId;
+            
+            card.innerHTML = `<b>${cardData.text}</b><small>${cardData.sub}</small>`;
+            card.onclick = () => handleMatchClick(card);
+            grid.appendChild(card);
+        });
+    }
+
+    function handleMatchClick(card) {
+        if (card.classList.contains("matched") || card.classList.contains("selected")) return;
+
+        card.classList.add("selected");
+
+        if (!firstSelection) {
+            firstSelection = card;
+        } else {
+            // Check Match
+            let id1 = parseInt(firstSelection.dataset.id);
+            let pair1 = parseInt(firstSelection.dataset.pairId);
+            let id2 = parseInt(card.dataset.id);
+
+            if (pair1 === id2) {
+                // Match Found
+                setTimeout(() => {
+                    firstSelection.classList.add("matched");
+                    card.classList.add("matched");
+                    firstSelection = null;
+                    matchCount++;
+                    if(matchCount === 4) {
+                        document.getElementById("match-next-btn").style.display = 'flex';
+                    }
+                }, 300);
+            } else {
+                // No Match
+                setTimeout(() => {
+                    firstSelection.classList.remove("selected");
+                    card.classList.remove("selected");
+                    firstSelection = null;
+                }, 800);
+            }
+        }
+    }
+
+</script>
+
+</body>
+</html>
