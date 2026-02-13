@@ -378,7 +378,7 @@ const sentenceTemplates = [
     {tamil: "Indha {word} naan romba <mark>velai seiren</mark> (seiya)", english: "This {word} I <mark>work</mark> a lot", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Hour", "Minute", "Second", "Clock", "Yesterday", "Today", "Tomorrow", "Breakfast", "Lunch", "Dinner"]},
 
     // Mixed complexity - use existing vocab conjugations
-    {tamil: "Appa nethu irundhan, ippo {word}, naalaiku iruparu", english: "Father was yesterday, now {word}, tomorrow will be", categories: ["Verb Conjugation"]},
+    {tamil: "Appa nethu irundhan, ippo {word}, naalaiku iruparu", english: "Father: yesterday he was, now he {word}, tomorrow he will be", categories: ["Verb"], exclude: ["I was", "I am", "I will be", "You were", "You are", "You will be", "He was", "He will be", "She/They were", "She/They are", "She/They will be", "We were", "We are", "We will be", "It was", "It is", "It will be", "Was I?", "Were you?", "Was he?", "Were she/they?", "Were we?", "Was it?", "Am I?", "Are you?", "Is he?", "Are she/they?", "Are we?", "Is it?", "Will I be?", "Will you be?", "Will he be?", "Will she/they be?", "Will we be?", "Will it be?"]},
     {tamil: "{word} veetla irukanga? Aama, ippo veetla irukanga", english: "Is {word} at home? Yes, now at home", categories: ["Family-Question"]},
     {tamil: "Idhu {word} mathiri iruku, aana adhu <mark>vera mathiri</mark>", english: "This is like {word}, but that is <mark>different way</mark>", categories: ["Manner", "Demonstrative"]}
 ];
