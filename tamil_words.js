@@ -281,43 +281,43 @@ const oppositePairs = [
 // - Use {word} as placeholder for the word to fill in
 const sentenceTemplates = [
     // Time sentences
-    {tamil: "Naan {word} appa-va <mark>paarthen</mark>", english: "I <mark>saw</mark> father {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year"]},
-    {tamil: "Amma {word} veetla <mark>velai seiranga</mark>", english: "Mother <mark>works</mark> at home in the {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year", "Day"]},
+    {tamil: "Naan {word} appa-va <mark>paarthen</mark> (paaru)", english: "I <mark>saw</mark> father {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year"]},
+    {tamil: "Amma {word} veetla <mark>velai seiranga</mark> (seiya)", english: "Mother <mark>works</mark> at home in the {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year", "Day"]},
     {tamil: "Enaku {word} saapadu romba pudikum", english: "I really like {word} food", categories: ["Time/Food"]},
     {tamil: "{word} romba <mark>seekiram</mark> poguthu", english: "The {word} is going very <mark>quickly</mark>", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Breakfast", "Lunch", "Dinner"]},
     {tamil: "Indha {word} enaku romba <mark>mukkiyam</mark>", english: "This {word} is very <mark>important</mark> to me", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night"]},
 
     // Family sentences
-    {tamil: "En {word} ippo veetla irukanga, aana apram <mark>veliya</mark> poganga", english: "My {word} is at home now, but later will <mark>go out</mark>", categories: ["Family", "Family-Extended"]},
-    {tamil: "Naan en {word} kuda kaalai saapadu saapten", english: "I ate breakfast with my {word}", categories: ["Family", "Family-Extended"]},
+    {tamil: "En {word} ippo veetla irukanga, aana apram <mark>veliya poganga</mark> (poga)", english: "My {word} is at home now, but later will <mark>go out</mark>", categories: ["Family", "Family-Extended"]},
+    {tamil: "Naan en {word} kuda kaalai saapadu <mark>saapten</mark> (saapadu)", english: "I <mark>ate</mark> breakfast with my {word}", categories: ["Family", "Family-Extended"]},
     {tamil: "Ungaloda {word} yenga irukanga? Veetla irukanga <mark>illa</mark> veliya irukanga?", english: "Where is your {word}? At home <mark>or</mark> outside?", categories: ["Family", "Family-Extended"]},
     {tamil: "En {word} romba <mark>nalla</mark> per", english: "My {word} is a very <mark>good</mark> person", categories: ["Family"]},
 
     // Question words
-    {tamil: "{word} pesuranga? Appa <mark>pesurara</mark> illa amma pesuranga?", english: "{word} is speaking? Is father <mark>speaking</mark> or mother?", categories: ["Question Word"]},
-    {tamil: "Neenga {word} irundhu vandheenga? Chennai-la irundhu <mark>vandheengala</mark>?", english: "From {word} did you come? Did you <mark>come</mark> from Chennai?", categories: ["Question Word"]},
-    {tamil: "{word} poganum? Ippo poganum illa naalaiku poganum?", english: "{word} should go? Should go now or tomorrow?", categories: ["Question Word"]},
-    {tamil: "Idhu {word}? Enaku theriyatha, neenga <mark>sollunga</mark>", english: "This is {word}? I don't know, you <mark>tell me</mark>", categories: ["Question Word"]},
+    {tamil: "{word} <mark>pesuranga</mark> (pesu)? Appa <mark>pesurara</mark> (pesu) illa amma pesuranga?", english: "{word} is <mark>speaking</mark>? Is father <mark>speaking</mark> or mother?", categories: ["Question Word"]},
+    {tamil: "Neenga {word} irundhu <mark>vandheenga</mark> (vara)? Chennai-la irundhu <mark>vandheengala</mark> (vara)?", english: "From {word} did you <mark>come</mark>? Did you <mark>come</mark> from Chennai?", categories: ["Question Word"]},
+    {tamil: "{word} <mark>poganum</mark> (poga)? Ippo poganum illa naalaiku poganum?", english: "{word} should <mark>go</mark>? Should go now or tomorrow?", categories: ["Question Word"]},
+    {tamil: "Idhu {word}? Enaku theriyatha, neenga <mark>sollunga</mark> (sollu)", english: "This is {word}? I don't know, you <mark>tell me</mark>", categories: ["Question Word"]},
 
     // Pronouns
-    {tamil: "{word} nethu veetla saapadu saapten, romba inipu", english: "{word} ate food at home yesterday, very sweet", categories: ["Pronoun"]},
+    {tamil: "{word} nethu veetla saapadu <mark>saapten</mark> (saapadu), romba inipu", english: "{word} <mark>ate</mark> food at home yesterday, very sweet", categories: ["Pronoun"]},
     {tamil: "{word} ippo inga irukkom, naalaiku anga irupom", english: "{word} are here now, tomorrow will be there", categories: ["Pronoun"]},
-    {tamil: "{word} inaiku veetuku poganum, aana naalaiku <mark>theva illa</mark>", english: "{word} should go home today, but tomorrow <mark>no need</mark>", categories: ["Pronoun"]},
+    {tamil: "{word} inaiku veetuku <mark>poganum</mark> (poga), aana naalaiku <mark>theva illa</mark>", english: "{word} should <mark>go</mark> home today, but tomorrow <mark>no need</mark>", categories: ["Pronoun"]},
 
     // Possessives
     {tamil: "{word} veedu romba periya veedu, chinna veedu illa", english: "{word} house is a very big house, not a small house", categories: ["Possessive"]},
-    {tamil: "{word} paiyan ippo anga veliya <mark>vilayadura</mark>", english: "{word} boy is now outside <mark>playing</mark>", categories: ["Possessive"]},
+    {tamil: "{word} paiyan ippo anga veliya <mark>vilayadura</mark> (vilaiyaadu)", english: "{word} boy is now outside <mark>playing</mark>", categories: ["Possessive"]},
     {tamil: "Idhu {word} veedu, adhu avangaloda veedu", english: "This is {word} house, that is their house", categories: ["Possessive"]},
 
     // Location/Direction
-    {tamil: "Saapadu {word} iruku, naan <mark>edukaren</mark>", english: "The food is {word}, I will <mark>take it</mark>", categories: ["Location/Adverb"], exclude: ["Here", "There"]},
-    {tamil: "Naan {word} paakuren, pinnadi paakala", english: "I am looking {word}, not looking back", categories: ["Location/Adverb"]},
+    {tamil: "Saapadu {word} iruku, naan <mark>edukaren</mark> (edukka)", english: "The food is {word}, I will <mark>take it</mark>", categories: ["Location/Adverb"], exclude: ["Here", "There"]},
+    {tamil: "Naan {word} <mark>paakuren</mark> (paaru), pinnadi paakala", english: "I am <mark>looking</mark> {word}, not looking back", categories: ["Location/Adverb"]},
     {tamil: "Appa {word} irukaru, naan keela irukken", english: "Father is {word}, I am below", categories: ["Location/Adverb"]},
 
     // Postposition - only for standalone words, not particles
-    {tamil: "Amma veedu {word} poganga, <mark>thirumbhi</mark> varuvanga", english: "Mother will go {word} the house, will <mark>return</mark>", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under"]},
-    {tamil: "Naan appa {word} pesuren, romba <mark>sandhosham</mark>", english: "I'm talking {word} father, very <mark>happy</mark>", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From"]},
-    {tamil: "Neenga {word} vandheenga, <mark>thaniya</mark> vandheenga", english: "You came {word} (someone), or came <mark>alone</mark>?", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From", "Inside", "Outside"]},
+    {tamil: "Amma veedu {word} <mark>poganga</mark> (poga), <mark>thirumbhi varuvanga</mark> (thirumbu + vara)", english: "Mother will <mark>go</mark> {word} the house, will <mark>return</mark>", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under"]},
+    {tamil: "Naan appa {word} <mark>pesuren</mark> (pesu), romba <mark>sandhosham</mark>", english: "I'm <mark>talking</mark> {word} father, very <mark>happy</mark>", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From"]},
+    {tamil: "Neenga {word} <mark>vandheenga</mark> (vara), <mark>thaniya vandheenga</mark> (thaniya)?", english: "You <mark>came</mark> {word} (someone), or came <mark>alone</mark>?", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From", "Inside", "Outside"]},
 
     // Adjectives
     {tamil: "Idhu romba {word} saapadu, enaku pudikum", english: "This is very {word} food, I like it", categories: ["Adjective", "Taste"]},
@@ -327,18 +327,18 @@ const sentenceTemplates = [
     // Quantity
     {tamil: "Enaku {word} saapadu venum, adhigam vendam", english: "I want {word} food, don't want too much", categories: ["Quantity"]},
     {tamil: "{word} iruka? Illa, {word} illa, adhigam iruku", english: "Is there {word}? No, there's not {word}, there's a lot", categories: ["Quantity"]},
-    {tamil: "Ippo {word} per irukanga, naalaiku neraiya per <mark>varuvanga</mark>", english: "Now there are {word} people, tomorrow many people will <mark>come</mark>", categories: ["Quantity"]},
+    {tamil: "Ippo {word} per irukanga, naalaiku neraiya per <mark>varuvanga</mark> (vara)", english: "Now there are {word} people, tomorrow many people will <mark>come</mark>", categories: ["Quantity"]},
 
     // Demonstrative
     {tamil: "{word} en veedu, adhu ungaloda veedu", english: "{word} is my house, that is your house", categories: ["Demonstrative"]},
     {tamil: "{word} veedu periya, aana andha veedu chinna", english: "{word} house is big, but that house is small", categories: ["Demonstrative"]},
-    {tamil: "Naan {word} mathiri <mark>seiren</mark>, appa andha mathiri seiraru", english: "I <mark>do</mark> like {word}, father does like that", categories: ["Demonstrative", "Manner"]},
+    {tamil: "Naan {word} mathiri <mark>seiren</mark> (seiya), appa andha mathiri <mark>seiraru</mark> (seiya)", english: "I <mark>do</mark> like {word}, father <mark>does</mark> like that", categories: ["Demonstrative", "Manner"]},
 
     // Verbs - Like/Know/Understand
     {tamil: "Enaku {word}, ungaluku pudikuma?", english: "I {word}, do you like it?", categories: ["Verb - Like", "Verb - Present Cont."]},
     {tamil: "Ungaluku {word}? Enaku theriyum, romba <mark>easy</mark>", english: "Do you {word}? I know, very <mark>easy</mark>", categories: ["Verb - Know", "Verb - Present Cont."]},
-    {tamil: "Naan nethu {word}, aana ippo puriyum", english: "I {word} yesterday, but now I understand", categories: ["Verb - Past Negative"]},
-    {tamil: "Enaku idhu {word}, aana adhu puriyatha", english: "I {word} this, but don't understand that", categories: ["Verb - Understand", "Verb - Know"]},
+    {tamil: "Naan nethu {word}, aana ippo <mark>puriyum</mark> (puriya)", english: "I {word} yesterday, but now I <mark>understand</mark>", categories: ["Verb - Past Negative"]},
+    {tamil: "Enaku idhu {word}, aana adhu <mark>puriyatha</mark> (puriya-neg)", english: "I {word} this, but don't <mark>understand</mark> that", categories: ["Verb - Understand", "Verb - Know"]},
 
     // Want/Enough
     {tamil: "Enaku {word}, ungaluku venuma?", english: "I {word}, do you want?", categories: ["Verb"]},
@@ -347,35 +347,35 @@ const sentenceTemplates = [
     // Numbers
     {tamil: "Enaku {word} veedu venum, rendu veedu vendam", english: "I want {word} house(s), don't want two houses", categories: ["Number"]},
     {tamil: "Inga {word} per irukanga, anga moonu per irukanga", english: "Here there are {word} people, there are three people", categories: ["Number"]},
-    {tamil: "Naalaiku {word} mani neram-la <mark>varen</mark>", english: "Tomorrow I will <mark>come</mark> at {word} o'clock", categories: ["Number"]},
+    {tamil: "Naalaiku {word} mani neram-la <mark>varen</mark> (vara)", english: "Tomorrow I will <mark>come</mark> at {word} o'clock", categories: ["Number"]},
 
     // Affirmation/Negation/Conjunction
-    {tamil: "{word}, naan ippo pogiren, naalaiku varuvren", english: "{word}, I am going now, will come tomorrow", categories: ["Affirmation/Negation"]},
-    {tamil: "Naan vandhan, {word} appa varala", english: "I came, {word} father didn't come", categories: ["Conjunction"]},
-    {tamil: "Idhu unmai {word} poi? Enaku theriyatha", english: "Is this truth {word} lie? I don't know", categories: ["Affirmation/Negation", "Abstract"]},
-    {tamil: "Naan pogiren {word} neenga pogala", english: "I am going {word} you are not going", categories: ["Conjunction"]},
+    {tamil: "{word}, naan ippo <mark>pogiren</mark> (poga), naalaiku <mark>varuvren</mark> (vara)", english: "{word}, I am <mark>going</mark> now, will <mark>come</mark> tomorrow", categories: ["Affirmation/Negation"]},
+    {tamil: "Naan <mark>vandhan</mark> (vara), {word} appa <mark>varala</mark> (vara-neg)", english: "I <mark>came</mark>, {word} father didn't <mark>come</mark>", categories: ["Conjunction"]},
+    {tamil: "Idhu unmai {word} poi? Enaku <mark>theriyatha</mark> (theriya-neg)", english: "Is this truth {word} lie? I don't <mark>know</mark>", categories: ["Affirmation/Negation", "Abstract"]},
+    {tamil: "Naan <mark>pogiren</mark> (poga) {word} neenga <mark>pogala</mark> (poga-neg)", english: "I am <mark>going</mark> {word} you are not <mark>going</mark>", categories: ["Conjunction"]},
 
     // Dative/Non-personal pronouns
-    {tamil: "{word} pudikum, avarruku pudikatha", english: "I like (to {word}), he doesn't like", categories: ["Personal Pronoun-Dative"]},
-    {tamil: "{word} theriyum, avangaluku theriyatha", english: "I know (to {word}), they don't know", categories: ["Personal Pronoun-Dative"]},
-    {tamil: "Naan {word} pesuren, avanga enkitta pesuranga", english: "I'm talking {word}, they're talking with me", categories: ["Non Personal Pronoun"]},
+    {tamil: "{word} pudikum, avarruku <mark>pudikatha</mark> (pudikka-neg)", english: "I like (to {word}), he doesn't like", categories: ["Personal Pronoun-Dative"]},
+    {tamil: "{word} theriyum, avangaluku <mark>theriyatha</mark> (theriya-neg)", english: "I know (to {word}), they don't know", categories: ["Personal Pronoun-Dative"]},
+    {tamil: "Naan {word} <mark>pesuren</mark> (pesu), avanga enkitta <mark>pesuranga</mark> (pesu)", english: "I'm <mark>talking</mark> {word}, they're <mark>talking</mark> with me", categories: ["Non Personal Pronoun"]},
 
     // People/Abstract
-    {tamil: "Andha {word} veetla irukanga, veliya irukala", english: "That {word} is at home, not outside", categories: ["People", "Family"]},
+    {tamil: "Andha {word} veetla irukanga, veliya <mark>irukala</mark> (irukka-neg)", english: "That {word} is at home, not outside", categories: ["People", "Family"]},
     {tamil: "Idhu {word}, adhu thappu illa", english: "This is {word}, that is not wrong", categories: ["Abstract"]},
     {tamil: "En peru {word}, ungaloda peru yenna?", english: "My name is {word}, what is your name?", categories: ["Noun"]},
 
     // Nouns
-    {tamil: "Naan {word} saapadu saapten, romba inipu", english: "I ate {word} food, very sweet", categories: ["Noun", "Time/Food"]},
+    {tamil: "Naan {word} saapadu <mark>saapten</mark> (saapadu), romba inipu", english: "I <mark>ate</mark> {word} food, very sweet", categories: ["Noun", "Time/Food"]},
     {tamil: "Idhu {word}, adhu rupees", english: "This is {word}, that is rupees", categories: ["Noun"]},
 
     // Time-specific
-    {tamil: "Naan {word} amma-va paarthen, aana inaiku paakala", english: "I saw mother {word}, but didn't see today", categories: ["Time"]},
-    {tamil: "{word} veedu pogalam, naalaiku pogalam", english: "Can go home {word}, can go tomorrow", categories: ["Time"]},
-    {tamil: "Indha {word} naan romba velai seiren, adutha {word} <mark>rest</mark> panren", english: "This {word} I work a lot, next {word} I'll <mark>rest</mark>", categories: ["Time"]},
+    {tamil: "Naan {word} amma-va <mark>paarthen</mark> (paaru)", english: "I <mark>saw</mark> mother {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year"]},
+    {tamil: "{word} veedu <mark>pogalam</mark> (poga)", english: "Can <mark>go</mark> home {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year", "Day"]},
+    {tamil: "Indha {word} naan romba <mark>velai seiren</mark> (seiya)", english: "This {word} I <mark>work</mark> a lot", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Hour", "Minute", "Second", "Clock", "Yesterday", "Today", "Tomorrow", "Breakfast", "Lunch", "Dinner"]},
 
-    // Mixed complexity
-    {tamil: "Appa {word} irundhan, ippo irukar, naalaiku irupar", english: "Father {word} (was), now is, tomorrow will be", categories: ["Verb Conjugation"]},
+    // Mixed complexity - use existing vocab conjugations
+    {tamil: "Appa nethu irundhan, ippo {word}, naalaiku iruparu", english: "Father was yesterday, now {word}, tomorrow will be", categories: ["Verb Conjugation"]},
     {tamil: "{word} veetla irukanga? Aama, ippo veetla irukanga", english: "Is {word} at home? Yes, now at home", categories: ["Family-Question"]},
-    {tamil: "Idhu {word} mathiri iruku, aana adhu vera mathiri", english: "This is like {word}, but that is different way", categories: ["Manner", "Demonstrative"]}
+    {tamil: "Idhu {word} mathiri iruku, aana adhu <mark>vera mathiri</mark>", english: "This is like {word}, but that is <mark>different way</mark>", categories: ["Manner", "Demonstrative"]}
 ];
