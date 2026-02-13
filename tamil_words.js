@@ -281,11 +281,11 @@ const oppositePairs = [
 // - Use {word} as placeholder for the word to fill in
 const sentenceTemplates = [
     // Time sentences
-    {tamil: "Naan {word} kaalai saapadu <mark>saapten</mark>", english: "I <mark>ate</mark> breakfast in the {word}", categories: ["Time"]},
-    {tamil: "{word} vanakkam! Neenga <mark>eppadi</mark> irukeenga?", english: "Good {word}! <mark>How</mark> are you?", categories: ["Time"]},
-    {tamil: "Amma {word} veetla <mark>velai seiranga</mark>", english: "Mother <mark>works</mark> at home in the {word}", categories: ["Time"]},
+    {tamil: "Naan {word} appa-va <mark>paarthen</mark>", english: "I <mark>saw</mark> father {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year"]},
+    {tamil: "Amma {word} veetla <mark>velai seiranga</mark>", english: "Mother <mark>works</mark> at home in the {word}", categories: ["Time"], exclude: ["Hour", "Minute", "Second", "Clock", "Week", "Month", "Year", "Day"]},
     {tamil: "Enaku {word} saapadu romba pudikum", english: "I really like {word} food", categories: ["Time/Food"]},
-    {tamil: "Naan nethu {word} appa-va <mark>paarthen</mark>", english: "I <mark>saw</mark> father yesterday {word}", categories: ["Time"]},
+    {tamil: "{word} romba <mark>seekiram</mark> poguthu", english: "The {word} is going very <mark>quickly</mark>", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Breakfast", "Lunch", "Dinner"]},
+    {tamil: "Indha {word} enaku romba <mark>mukkiyam</mark>", english: "This {word} is very <mark>important</mark> to me", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night"]},
 
     // Family sentences
     {tamil: "En {word} ippo veetla irukanga, aana apram <mark>veliya</mark> poganga", english: "My {word} is at home now, but later will <mark>go out</mark>", categories: ["Family", "Family-Extended"]},

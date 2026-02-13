@@ -967,21 +967,29 @@
     function generateFillSentence() {
         document.getElementById("fill-feedback").innerText = "";
         document.getElementById("fill-feedback").className = "fill-feedback";
-        
+
         // Pick a random word from current list
         const randomWord = currentList[Math.floor(Math.random() * currentList.length)];
         currentFillWord = randomWord;
-        
-        // Find templates that match this word's category
-        const matchingTemplates = sentenceTemplates.filter(template => 
-            template.categories.some(cat => randomWord.cat.includes(cat))
-        );
-        
+
+        // Find templates that match this word's category and are not excluded
+        const matchingTemplates = sentenceTemplates.filter(template => {
+            // Check if category matches
+            const categoryMatches = template.categories.some(cat => randomWord.cat.includes(cat));
+            // Check if word is excluded
+            const isExcluded = template.exclude && template.exclude.includes(randomWord.en);
+            return categoryMatches && !isExcluded;
+        });
+
         // Fallback to general templates if no match
-        const availableTemplates = matchingTemplates.length > 0 
-            ? matchingTemplates 
-            : sentenceTemplates.filter(t => t.categories.includes("Time") || t.categories.includes("Noun"));
-        
+        const availableTemplates = matchingTemplates.length > 0
+            ? matchingTemplates
+            : sentenceTemplates.filter(t => {
+                const categoryMatches = t.categories.includes("Time") || t.categories.includes("Noun");
+                const isExcluded = t.exclude && t.exclude.includes(randomWord.en);
+                return categoryMatches && !isExcluded;
+            });
+
         currentFillTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
         
         // Create the sentence with a blank input
