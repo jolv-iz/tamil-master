@@ -309,11 +309,15 @@ const sentenceTemplates = [
     {tamil: "{word} paiyan ippo anga veliya <mark>vilayadura</mark>", english: "{word} boy is now outside <mark>playing</mark>", categories: ["Possessive"]},
     {tamil: "Idhu {word} veedu, adhu avangaloda veedu", english: "This is {word} house, that is their house", categories: ["Possessive"]},
 
-    // Location/Direction/Postposition
-    {tamil: "Veedu {word} iruku, keela illa", english: "The house is {word}, not below", categories: ["Location/Adverb", "Postposition"]},
+    // Location/Direction
+    {tamil: "Saapadu {word} iruku, naan <mark>edukaren</mark>", english: "The food is {word}, I will <mark>take it</mark>", categories: ["Location/Adverb"], exclude: ["Here", "There"]},
     {tamil: "Naan {word} paakuren, pinnadi paakala", english: "I am looking {word}, not looking back", categories: ["Location/Adverb"]},
-    {tamil: "Appa {word} irukaru, naan keela irukken", english: "Father is {word}, I am below", categories: ["Location/Adverb", "Postposition"]},
-    {tamil: "Saapadu {word} podu, veliya <mark>podatha</mark>", english: "Put the food {word}, <mark>don't put</mark> outside", categories: ["Postposition", "Location"]},
+    {tamil: "Appa {word} irukaru, naan keela irukken", english: "Father is {word}, I am below", categories: ["Location/Adverb"]},
+
+    // Postposition - only for standalone words, not particles
+    {tamil: "Amma veedu {word} poganga, <mark>thirumbhi</mark> varuvanga", english: "Mother will go {word} the house, will <mark>return</mark>", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under"]},
+    {tamil: "Naan appa {word} pesuren, romba <mark>sandhosham</mark>", english: "I'm talking {word} father, very <mark>happy</mark>", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From"]},
+    {tamil: "Neenga {word} vandheenga, <mark>thaniya</mark> vandheenga", english: "You came {word} (someone), or came <mark>alone</mark>?", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From", "Inside", "Outside"]},
 
     // Adjectives
     {tamil: "Idhu romba {word} saapadu, enaku pudikum", english: "This is very {word} food, I like it", categories: ["Adjective", "Taste"]},
