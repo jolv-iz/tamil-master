@@ -397,6 +397,14 @@
             font-size: 0.85rem;
             margin-top: 10px;
         }
+        /* Highlight new vocabulary words in sentences */
+        mark {
+            background-color: #FFF9C4;
+            color: #F57C00;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
 
     </style>
 </head>
@@ -507,7 +515,7 @@
             <div class="sentence-english" id="fill-sentence-english"></div>
         </div>
         <div class="fill-feedback" id="fill-feedback"></div>
-        <div class="hint-text">Type the Tamil word and press Enter or Check</div>
+        <div class="hint-text">Type the Tamil word and press Enter or Check<br><span style="color:#F57C00;">Yellow highlighted words</span> are new vocabulary to learn!</div>
         <div class="nav-buttons" style="margin-top:15px;">
             <button class="btn" onclick="checkFillAnswer()">Check Answer</button>
             <button class="btn" onclick="skipFillQuestion()">Skip →</button>
@@ -920,9 +928,9 @@
     function checkQuizAnswer(btnElement, selectedId, correctId) {
         const allBtns = document.querySelectorAll(".option-btn");
         allBtns.forEach(b => b.onclick = null);
-        
+
         quizStats.totalAnswered++;
-        
+
         if (selectedId === correctId) {
             btnElement.classList.add("correct");
             score++;
@@ -937,11 +945,15 @@
             btnElement.classList.add("wrong");
             quizStats.currentStreak = 0;
             document.getElementById("quiz-feedback").innerText = "Oops! Try again.";
+            const correctItem = data.find(d => d.id === correctId);
+            const correctText = learningDirection === 'en-ta' ? correctItem.ta : correctItem.en;
             allBtns.forEach(b => {
-                if (b.innerText === data.find(d => d.id === correctId).ta) b.classList.add("correct");
+                if (normalizeAnswer(b.innerText) === normalizeAnswer(correctText)) {
+                    b.classList.add("correct");
+                }
             });
         }
-        
+
         saveStats();
         updateStatsDisplay();
     }
@@ -1004,7 +1016,9 @@
     function normalizeAnswer(text) {
         return text.toLowerCase()
             .trim()
-            .replace(/\s+/g, ' ');
+            .replace(/\s+/g, ' ')  // Normalize multiple spaces to single space
+            .replace(/[?!.,;:\-_\/\\()\[\]{}'"]/g, '')  // Remove special characters and punctuation
+            .replace(/\u200B/g, '');  // Remove zero-width spaces
     }
 
     function checkFillAnswer() {
