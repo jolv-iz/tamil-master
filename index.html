@@ -524,6 +524,10 @@
 
     <div id="area-list" class="vocab-list-container">
         <div class="vocab-count">Total Vocabulary: <span id="vocab-total">108</span> words</div>
+        <div style="margin-bottom: 15px; display: flex; gap: 10px; justify-content: center;">
+            <button class="btn" id="btn-view-category" onclick="setVocabView('category')" style="background: var(--primary);">By Category</button>
+            <button class="btn" id="btn-view-memory" onclick="setVocabView('memory')">By Memory Level</button>
+        </div>
         <div id="vocab-list-content"></div>
     </div>
 
@@ -634,15 +638,24 @@
         currentList.sort((a, b) => {
             const memA = wordMemory[a.id] || {level: 0, lastReview: 0};
             const memB = wordMemory[b.id] || {level: 0, lastReview: 0};
-            
+
             // First sort by level (lower level = needs more review)
             if (memA.level !== memB.level) {
                 return memA.level - memB.level;
             }
-            
+
             // Then by last review time (older = needs review)
             return memA.lastReview - memB.lastReview;
         });
+        currentIndex = 0;
+    }
+
+    // Shuffle array using Fisher-Yates algorithm
+    function shuffleCards() {
+        for (let i = currentList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [currentList[i], currentList[j]] = [currentList[j], currentList[i]];
+        }
         currentIndex = 0;
     }
 
@@ -691,10 +704,32 @@
     }
 
     // Generate vocabulary list organized by category
+    let currentVocabView = 'category'; // 'category' or 'memory'
+
+    function setVocabView(view) {
+        currentVocabView = view;
+
+        // Update button styles
+        document.getElementById('btn-view-category').style.background = view === 'category' ? 'var(--primary)' : '#777';
+        document.getElementById('btn-view-memory').style.background = view === 'memory' ? 'var(--primary)' : '#777';
+
+        generateVocabList();
+    }
+
     function generateVocabList() {
         const container = document.getElementById('vocab-list-content');
         container.innerHTML = '';
-        
+
+        if (currentVocabView === 'category') {
+            generateVocabByCategory(container);
+        } else {
+            generateVocabByMemory(container);
+        }
+
+        document.getElementById('vocab-total').innerText = data.length;
+    }
+
+    function generateVocabByCategory(container) {
         // Group words by category
         const categories = {};
         data.forEach(item => {
@@ -703,52 +738,90 @@
             }
             categories[item.cat].push(item);
         });
-        
+
         // Sort categories alphabetically
         const sortedCategories = Object.keys(categories).sort();
-        
+
         // Create sections for each category
         sortedCategories.forEach(cat => {
             const section = document.createElement('div');
             section.className = 'vocab-category';
-            
+
             const title = document.createElement('div');
             title.className = 'vocab-category-title';
             title.innerText = `${cat} (${categories[cat].length})`;
             section.appendChild(title);
-            
+
             // Sort words within category by English
             categories[cat].sort((a, b) => a.en.localeCompare(b.en));
-            
+
             categories[cat].forEach(item => {
-                const vocabItem = document.createElement('div');
-                vocabItem.className = 'vocab-item';
-                
-                const enDiv = document.createElement('div');
-                enDiv.className = 'vocab-en';
-                enDiv.innerText = item.en;
-                
-                const taDiv = document.createElement('div');
-                taDiv.className = 'vocab-ta';
-                taDiv.innerText = item.ta;
-                
-                vocabItem.appendChild(enDiv);
-                vocabItem.appendChild(taDiv);
-                
-                if (item.pron) {
-                    const pronDiv = document.createElement('div');
-                    pronDiv.className = 'vocab-pron';
-                    pronDiv.innerText = `Pronunciation: ${item.pron}`;
-                    vocabItem.appendChild(pronDiv);
-                }
-                
-                section.appendChild(vocabItem);
+                section.appendChild(createVocabItem(item));
             });
-            
+
             container.appendChild(section);
         });
-        
-        document.getElementById('vocab-total').innerText = data.length;
+    }
+
+    function generateVocabByMemory(container) {
+        // Group words by memory level
+        const memoryLevels = {
+            0: { label: "Don't Know", words: [], color: '#e74c3c' },
+            1: { label: "Not Sure", words: [], color: '#f39c12' },
+            2: { label: "I Know It", words: [], color: '#27ae60' }
+        };
+
+        data.forEach(item => {
+            const mem = wordMemory[item.id] || { level: 0 };
+            memoryLevels[mem.level].words.push(item);
+        });
+
+        // Create sections for each memory level
+        [0, 1, 2].forEach(level => {
+            const levelData = memoryLevels[level];
+            const section = document.createElement('div');
+            section.className = 'vocab-category';
+
+            const title = document.createElement('div');
+            title.className = 'vocab-category-title';
+            title.style.background = levelData.color;
+            title.innerText = `${levelData.label} (${levelData.words.length})`;
+            section.appendChild(title);
+
+            // Sort words by English
+            levelData.words.sort((a, b) => a.en.localeCompare(b.en));
+
+            levelData.words.forEach(item => {
+                section.appendChild(createVocabItem(item));
+            });
+
+            container.appendChild(section);
+        });
+    }
+
+    function createVocabItem(item) {
+        const vocabItem = document.createElement('div');
+        vocabItem.className = 'vocab-item';
+
+        const enDiv = document.createElement('div');
+        enDiv.className = 'vocab-en';
+        enDiv.innerText = item.en;
+
+        const taDiv = document.createElement('div');
+        taDiv.className = 'vocab-ta';
+        taDiv.innerText = item.ta;
+
+        vocabItem.appendChild(enDiv);
+        vocabItem.appendChild(taDiv);
+
+        if (item.pron) {
+            const pronDiv = document.createElement('div');
+            pronDiv.className = 'vocab-pron';
+            pronDiv.innerText = `Pronunciation: ${item.pron}`;
+            vocabItem.appendChild(pronDiv);
+        }
+
+        return vocabItem;
     }
 
     // INITIALIZATION
@@ -822,9 +895,9 @@
         } else {
             currentList = data.filter(item => item.cat === cat);
         }
-        
-        sortByMemoryLevel(); // Sort by what needs review
-        
+
+        shuffleCards(); // Shuffle cards randomly
+
         if(currentMode === 'flash') {
             resetCard();
             loadCard();
@@ -941,21 +1014,46 @@
             }
             document.getElementById("quiz-score").innerText = score;
             document.getElementById("quiz-feedback").innerText = "Correct! 🎉";
+
+            saveStats();
+            updateStatsDisplay();
+
+            // Auto-proceed to next question after 1 second
+            setTimeout(() => {
+                generateQuiz();
+            }, 1000);
         } else {
             btnElement.classList.add("wrong");
             quizStats.currentStreak = 0;
-            document.getElementById("quiz-feedback").innerText = "Oops! Try again.";
-            const correctItem = data.find(d => d.id === correctId);
-            const correctText = learningDirection === 'en-ta' ? correctItem.ta : correctItem.en;
+
+            // Show meanings of all choices
+            const currentQuestionItem = data.find(d => d.id === correctId);
+            let feedbackText = "Incorrect. ";
+
             allBtns.forEach(b => {
-                if (normalizeAnswer(b.innerText) === normalizeAnswer(correctText)) {
-                    b.classList.add("correct");
+                const btnText = b.innerText;
+                const optionItem = data.find(item => {
+                    const itemText = learningDirection === 'en-ta' ? item.ta : item.en;
+                    return normalizeAnswer(itemText) === normalizeAnswer(btnText);
+                });
+
+                if (optionItem) {
+                    if (optionItem.id === correctId) {
+                        b.classList.add("correct");
+                    }
+                    // Add meaning as subtitle to each button
+                    const meaningText = learningDirection === 'en-ta' ? optionItem.en : optionItem.ta;
+                    b.innerHTML = `<div style="font-weight: bold;">${btnText}</div><small style="color: #666; font-size: 0.85em;">${meaningText}</small>`;
                 }
             });
-        }
 
-        saveStats();
-        updateStatsDisplay();
+            const correctAnswer = learningDirection === 'en-ta' ? currentQuestionItem.ta : currentQuestionItem.en;
+            feedbackText += `Correct answer: ${correctAnswer}`;
+            document.getElementById("quiz-feedback").innerText = feedbackText;
+
+            saveStats();
+            updateStatsDisplay();
+        }
     }
 
     // --- FILL IN THE BLANK LOGIC ---
@@ -1107,8 +1205,9 @@
             card.classList.add("match-card");
             card.dataset.id = cardData.id;
             card.dataset.pairId = cardData.pairId;
-            
-            card.innerHTML = `<b>${cardData.text}</b><small>${cardData.sub}</small>`;
+            card.dataset.sub = cardData.sub; // Store subtitle for later use
+
+            card.innerHTML = `<b>${cardData.text}</b>`;
             card.onclick = () => handleMatchClick(card);
             grid.appendChild(card);
         });
@@ -1139,12 +1238,22 @@
                     }
                 }, 300);
             } else {
-                // No Match
+                // No Match - show meanings temporarily
+                const firstText = firstSelection.querySelector('b').innerText;
+                const secondText = card.querySelector('b').innerText;
+                const firstSub = firstSelection.dataset.sub;
+                const secondSub = card.dataset.sub;
+
+                firstSelection.innerHTML = `<b>${firstText}</b><small style="color: #e74c3c;">${firstSub}</small>`;
+                card.innerHTML = `<b>${secondText}</b><small style="color: #e74c3c;">${secondSub}</small>`;
+
                 setTimeout(() => {
+                    firstSelection.innerHTML = `<b>${firstText}</b>`;
+                    card.innerHTML = `<b>${secondText}</b>`;
                     firstSelection.classList.remove("selected");
                     card.classList.remove("selected");
                     firstSelection = null;
-                }, 800);
+                }, 1500);
             }
         }
     }
