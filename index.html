@@ -351,53 +351,40 @@
             font-style: italic;
             line-height: 1.6;
         }
-        .blank-input {
-            display: inline-block;
-            min-width: 120px;
-            padding: 4px 8px;
-            border: none;
-            border-bottom: 2px solid var(--primary);
-            background: var(--secondary);
-            font-size: 1.3rem;
-            font-weight: bold;
+        .fill-choices-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 420px;
+            margin: 10px auto 0;
+        }
+        .fill-choice-btn {
+            padding: 15px 10px;
+            font-size: 1.05rem;
+            line-height: 1.4;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            background: white;
             color: var(--primary);
-            text-align: center;
-            margin: 0 5px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, color 0.15s;
+            touch-action: manipulation;
         }
-        .blank-input:focus {
-            outline: none;
-            background: #FFE0D5;
-            border-bottom-color: #FF5722;
-        }
-        .blank-input.correct {
-            border-bottom-color: var(--success);
-            background: #e8f5e9;
-            color: var(--success);
-        }
-        .blank-input.wrong {
-            border-bottom-color: var(--error);
-            background: #ffebee;
-            color: var(--error);
-        }
+        .fill-choice-btn:active { opacity: 0.8; }
+        .fill-choice-btn.correct { background: var(--success); color: white; border-color: var(--success); }
+        .fill-choice-btn.wrong   { background: var(--error);   color: white; border-color: var(--error); }
         .fill-feedback {
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             min-height: 30px;
             margin: 10px 0;
+            line-height: 1.5;
         }
-        .fill-feedback.correct {
-            color: var(--success);
-        }
-        .fill-feedback.wrong {
-            color: var(--error);
-        }
-        .hint-text {
-            text-align: center;
-            color: #888;
-            font-size: 0.85rem;
-            margin-top: 10px;
-        }
+        .fill-feedback.correct { color: var(--success); }
+        .fill-feedback.wrong   { color: var(--error); }
         /* Highlight new vocabulary words in sentences */
         mark {
             background-color: #FFF9C4;
@@ -585,14 +572,13 @@
     <div id="area-fill" class="fill-container">
         <div class="score-board">Score: <span id="fill-score">0</span></div>
         <div class="sentence-display">
-            <div class="sentence-tamil" id="fill-sentence-tamil"></div>
-            <div class="sentence-english" id="fill-sentence-english"></div>
+            <div id="fill-sentence-english" style="font-size:1.15rem; color:var(--text); line-height:1.8;"></div>
+            <div style="font-size:0.8rem; color:#999; margin-top:8px;">Tap the correct Tamil word to fill the blank</div>
         </div>
         <div class="fill-feedback" id="fill-feedback"></div>
-        <div class="hint-text">Type the Tamil word and press Enter or Check<br><span style="color:#F57C00;">Yellow highlighted words</span> are new vocabulary to learn!</div>
+        <div id="fill-choices" class="fill-choices-grid"></div>
         <div class="nav-buttons" style="margin-top:15px;">
-            <button class="btn" onclick="checkFillAnswer()">Check Answer</button>
-            <button class="btn" onclick="skipFillQuestion()">Skip →</button>
+            <button class="btn" onclick="generateFillSentence()">Skip →</button>
         </div>
     </div>
 
@@ -672,11 +658,21 @@
         
         saveMemory();
         updateMemoryStats();
-        
-        // Auto-advance to next card
-        setTimeout(() => {
-            nextCard();
-        }, 300);
+
+        if (rating === 'know') {
+            // Remove this word from the current session immediately
+            currentList.splice(currentIndex, 1);
+            if (currentList.length === 0) {
+                // All words mastered — reload with all words so user isn't stuck
+                filterCategory();
+                return;
+            }
+            if (currentIndex >= currentList.length) currentIndex = 0;
+            setTimeout(() => { resetCard(); loadCard(); }, 300);
+        } else {
+            // Auto-advance to next card
+            setTimeout(() => { nextCard(); }, 300);
+        }
     }
 
     function updateMemoryStats() {
@@ -724,6 +720,16 @@
             // Then by last review time (older = needs review)
             return memA.lastReview - memB.lastReview;
         });
+        currentIndex = 0;
+    }
+
+    // Remove mastered (level 2) words from the active session list
+    function filterLearnedWords() {
+        const unlearned = currentList.filter(w => {
+            const mem = wordMemory[w.id];
+            return !mem || mem.level < 2;
+        });
+        if (unlearned.length > 0) currentList = unlearned;
         currentIndex = 0;
     }
 
@@ -907,7 +913,8 @@
         populateCategories();
         loadStats();
         loadMemory();
-        sortByMemoryLevel(); // Show words that need review first
+        filterLearnedWords();
+        shuffleCards();
         loadCard();
         updateMemoryStats();
     };
@@ -981,6 +988,7 @@
         shuffleCards(); // Shuffle cards randomly
 
         if(currentMode === 'flash') {
+            filterLearnedWords(); // skip already-mastered words
             resetCard();
             loadCard();
             updateMemoryStats();
@@ -1036,8 +1044,11 @@
     }
     
     function shuffleAndRestart() {
+        const cat = document.getElementById("categoryFilter").value;
+        currentList = cat === "All" ? [...data] : data.filter(item => item.cat === cat);
+        filterLearnedWords();
+        shuffleCards();
         resetCard();
-        sortByMemoryLevel(); // Resort by priority, not random
         loadCard();
         updateMemoryStats();
     }
@@ -1138,121 +1149,77 @@
         }
     }
 
+    function normalizeAnswer(text) {
+        return text.toLowerCase()
+            .trim()
+            .replace(/\s+/g, ' ')
+            .replace(/[?!.,;:\-_\/\\()\[\]{}'"]/g, '')
+            .replace(/\u200B/g, '');
+    }
+
     // --- FILL IN THE BLANK LOGIC ---
     let fillScore = 0;
     let currentFillWord = null;
     let currentFillTemplate = null;
-    let currentFillInput = null;
 
     function generateFillSentence() {
         document.getElementById("fill-feedback").innerText = "";
         document.getElementById("fill-feedback").className = "fill-feedback";
 
-        // Pick a random word from current list
         const randomWord = currentList[Math.floor(Math.random() * currentList.length)];
         currentFillWord = randomWord;
 
-        // Find templates that match this word's category and are not excluded
         const matchingTemplates = sentenceTemplates.filter(template => {
-            // Check if category matches
             const categoryMatches = template.categories.some(cat => randomWord.cat.includes(cat));
-            // Check if word is excluded
             const isExcluded = template.exclude && template.exclude.includes(randomWord.en);
             return categoryMatches && !isExcluded;
         });
 
-        // Fallback to general templates if no match
         const availableTemplates = matchingTemplates.length > 0
             ? matchingTemplates
-            : sentenceTemplates.filter(t => {
-                const categoryMatches = t.categories.includes("Time") || t.categories.includes("Noun");
-                const isExcluded = t.exclude && t.exclude.includes(randomWord.en);
-                return categoryMatches && !isExcluded;
-            });
+            : sentenceTemplates.filter(t => !t.exclude || !t.exclude.includes(randomWord.en));
 
-        currentFillTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
-        
-        // Create the sentence with a blank input
-        const tamilSentence = currentFillTemplate.tamil.replace(
-            '{word}',
-            '<input type="text" class="blank-input" id="fill-input" autocomplete="off" />'
-        );
-        
-        const englishSentence = currentFillTemplate.english.replace(
-            '{word}',
-            `<strong>${randomWord.en}</strong>`
-        );
-        
-        document.getElementById("fill-sentence-tamil").innerHTML = tamilSentence;
-        document.getElementById("fill-sentence-english").innerHTML = englishSentence;
-        
-        // Focus on input after a short delay
-        setTimeout(() => {
-            currentFillInput = document.getElementById("fill-input");
-            if (currentFillInput) {
-                currentFillInput.focus();
-                // Add Enter key listener
-                currentFillInput.onkeypress = function(e) {
-                    if (e.key === 'Enter') {
-                        checkFillAnswer();
-                    }
-                };
-            }
-        }, 100);
+        currentFillTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)]
+                           || sentenceTemplates[0];
+
+        // English sentence with a visual underline blank
+        const blank = `<span style="display:inline-block; min-width:70px; border-bottom:3px solid var(--primary); margin:0 4px; vertical-align:bottom;">&nbsp;</span>`;
+        document.getElementById("fill-sentence-english").innerHTML =
+            currentFillTemplate.english.replace('{word}', blank);
+
+        // 4 choices: 1 correct + 3 random distractors
+        const distractors = data.filter(w => w.id !== randomWord.id)
+            .sort(() => Math.random() - 0.5).slice(0, 3);
+        const choices = [randomWord, ...distractors].sort(() => Math.random() - 0.5);
+
+        document.getElementById("fill-choices").innerHTML = choices.map(w =>
+            `<button class="fill-choice-btn" data-word-id="${w.id}" onclick="checkFillChoice(this)">
+                ${w.ta}${w.pron ? `<br><small style="opacity:0.65; font-size:0.72rem;">${w.pron}</small>` : ''}
+            </button>`
+        ).join('');
     }
 
-    function normalizeAnswer(text) {
-        return text.toLowerCase()
-            .trim()
-            .replace(/\s+/g, ' ')  // Normalize multiple spaces to single space
-            .replace(/[?!.,;:\-_\/\\()\[\]{}'"]/g, '')  // Remove special characters and punctuation
-            .replace(/\u200B/g, '');  // Remove zero-width spaces
-    }
-
-    function checkFillAnswer() {
-        if (!currentFillInput || !currentFillWord) return;
-        
-        const userAnswer = normalizeAnswer(currentFillInput.value);
-        const correctAnswer = normalizeAnswer(currentFillWord.ta);
-        
+    function checkFillChoice(btn) {
+        document.querySelectorAll('.fill-choice-btn').forEach(b => b.disabled = true);
+        const wordId = parseInt(btn.getAttribute('data-word-id'));
         const feedback = document.getElementById("fill-feedback");
-        
-        if (userAnswer === correctAnswer) {
-            currentFillInput.className = "blank-input correct";
-            currentFillInput.disabled = true;
+        const tamilSentence = currentFillTemplate.tamil.replace('{word}', `<strong>${currentFillWord.ta}</strong>`);
+
+        if (wordId === currentFillWord.id) {
+            btn.classList.add('correct');
             fillScore++;
             document.getElementById("fill-score").innerText = fillScore;
-            feedback.innerHTML = `✓ Correct! ${currentFillWord.ta}`;
+            feedback.innerHTML = `✓ &ldquo;${currentFillWord.en}&rdquo; = <strong>${currentFillWord.ta}</strong><br><small style="font-weight:normal; color:#444;">${tamilSentence}</small>`;
             feedback.className = "fill-feedback correct";
-            
-            // Auto-advance after 2 seconds
-            setTimeout(() => {
-                generateFillSentence();
-            }, 2000);
         } else {
-            currentFillInput.className = "blank-input wrong";
-            feedback.innerHTML = `✗ Try again! (Hint: ${currentFillWord.pron || currentFillWord.ta})`;
+            btn.classList.add('wrong');
+            document.querySelectorAll('.fill-choice-btn').forEach(b => {
+                if (parseInt(b.getAttribute('data-word-id')) === currentFillWord.id) b.classList.add('correct');
+            });
+            feedback.innerHTML = `✗ It was <strong>${currentFillWord.ta}</strong>${currentFillWord.pron ? ` (${currentFillWord.pron})` : ''}<br><small style="font-weight:normal; color:#444;">${tamilSentence}</small>`;
             feedback.className = "fill-feedback wrong";
-            
-            // Allow retry
-            setTimeout(() => {
-                currentFillInput.value = "";
-                currentFillInput.className = "blank-input";
-                currentFillInput.focus();
-                feedback.innerText = "";
-                feedback.className = "fill-feedback";
-            }, 2000);
         }
-    }
-
-    function skipFillQuestion() {
-        const feedback = document.getElementById("fill-feedback");
-        feedback.innerHTML = `The answer was: <strong>${currentFillWord.ta}</strong>`;
-        feedback.className = "fill-feedback";
-        
-        setTimeout(() => {
-            generateFillSentence();
-        }, 1500);
+        setTimeout(() => generateFillSentence(), 2500);
     }
 
     // --- OPPOSITES MATCHING LOGIC ---
