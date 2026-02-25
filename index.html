@@ -907,7 +907,7 @@
         populateCategories();
         loadStats();
         loadMemory();
-        sortByMemoryLevel(); // Show words that need review first
+        shuffleCards(); // Shuffle words randomly on initial load
         loadCard();
         updateMemoryStats();
     };
@@ -1037,7 +1037,7 @@
     
     function shuffleAndRestart() {
         resetCard();
-        sortByMemoryLevel(); // Resort by priority, not random
+        shuffleCards(); // Shuffle randomly
         loadCard();
         updateMemoryStats();
     }
