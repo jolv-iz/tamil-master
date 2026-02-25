@@ -351,30 +351,35 @@
             font-style: italic;
             line-height: 1.6;
         }
-        .fill-choices-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            width: 100%;
-            max-width: 420px;
-            margin: 10px auto 0;
-        }
-        .fill-choice-btn {
-            padding: 15px 10px;
-            font-size: 1.05rem;
-            line-height: 1.4;
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            background: white;
+        .blank-input {
+            display: inline-block;
+            min-width: 130px;
+            padding: 4px 8px;
+            border: none;
+            border-bottom: 2px solid var(--primary);
+            background: var(--secondary);
+            font-size: 1.1rem;
+            font-weight: bold;
             color: var(--primary);
-            cursor: pointer;
+            text-align: center;
+            margin: 0 5px;
             font-family: inherit;
-            transition: background 0.15s, color 0.15s;
-            touch-action: manipulation;
         }
-        .fill-choice-btn:active { opacity: 0.8; }
-        .fill-choice-btn.correct { background: var(--success); color: white; border-color: var(--success); }
-        .fill-choice-btn.wrong   { background: var(--error);   color: white; border-color: var(--error); }
+        .blank-input:focus {
+            outline: none;
+            background: #FFE0D5;
+            border-bottom-color: #FF5722;
+        }
+        .blank-input.correct {
+            border-bottom-color: var(--success);
+            background: #e8f5e9;
+            color: var(--success);
+        }
+        .blank-input.wrong {
+            border-bottom-color: var(--error);
+            background: #ffebee;
+            color: var(--error);
+        }
         .fill-feedback {
             text-align: center;
             font-size: 1rem;
@@ -385,6 +390,12 @@
         }
         .fill-feedback.correct { color: var(--success); }
         .fill-feedback.wrong   { color: var(--error); }
+        .hint-text {
+            text-align: center;
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
         /* Highlight new vocabulary words in sentences */
         mark {
             background-color: #FFF9C4;
@@ -572,13 +583,14 @@
     <div id="area-fill" class="fill-container">
         <div class="score-board">Score: <span id="fill-score">0</span></div>
         <div class="sentence-display">
-            <div id="fill-sentence-english" style="font-size:1.15rem; color:var(--text); line-height:1.8;"></div>
-            <div style="font-size:0.8rem; color:#999; margin-top:8px;">Tap the correct Tamil word to fill the blank</div>
+            <div class="sentence-tamil" id="fill-sentence-tamil"></div>
+            <div class="sentence-english" id="fill-sentence-english"></div>
         </div>
         <div class="fill-feedback" id="fill-feedback"></div>
-        <div id="fill-choices" class="fill-choices-grid"></div>
+        <div class="hint-text">Type the pronunciation in English letters and press Enter or Check</div>
         <div class="nav-buttons" style="margin-top:15px;">
-            <button class="btn" onclick="generateFillSentence()">Skip →</button>
+            <button class="btn" onclick="checkFillAnswer()">Check</button>
+            <button class="btn" onclick="skipFillQuestion()">Skip →</button>
         </div>
     </div>
 
@@ -1161,12 +1173,25 @@
     let fillScore = 0;
     let currentFillWord = null;
     let currentFillTemplate = null;
+    let currentFillInput = null;
+
+    // Loose match for pronunciations: collapse hyphens, spaces, case
+    function normalizePron(text) {
+        return text.toLowerCase()
+            .trim()
+            .replace(/[\s\-_]/g, '')
+            .replace(/[?!.,;:\/\\()\[\]{}'"]/g, '')
+            .replace(/\u200B/g, '');
+    }
 
     function generateFillSentence() {
         document.getElementById("fill-feedback").innerText = "";
         document.getElementById("fill-feedback").className = "fill-feedback";
 
-        const randomWord = currentList[Math.floor(Math.random() * currentList.length)];
+        // Prefer words that have a pronunciation guide
+        const pronounceable = currentList.filter(w => w.pron && w.pron.trim() !== '');
+        const pool = pronounceable.length > 0 ? pronounceable : currentList;
+        const randomWord = pool[Math.floor(Math.random() * pool.length)];
         currentFillWord = randomWord;
 
         const matchingTemplates = sentenceTemplates.filter(template => {
@@ -1182,44 +1207,65 @@
         currentFillTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)]
                            || sentenceTemplates[0];
 
-        // English sentence with a visual underline blank
-        const blank = `<span style="display:inline-block; min-width:70px; border-bottom:3px solid var(--primary); margin:0 4px; vertical-align:bottom;">&nbsp;</span>`;
-        document.getElementById("fill-sentence-english").innerHTML =
-            currentFillTemplate.english.replace('{word}', blank);
+        // Tamil sentence with a text-input blank
+        const tamilSentence = currentFillTemplate.tamil.replace(
+            '{word}',
+            '<input type="text" class="blank-input" id="fill-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type here..." />'
+        );
+        // English sentence with the target word bolded as a hint
+        const englishSentence = currentFillTemplate.english.replace(
+            '{word}',
+            `<strong>${randomWord.en}</strong>`
+        );
 
-        // 4 choices: 1 correct + 3 random distractors
-        const distractors = data.filter(w => w.id !== randomWord.id)
-            .sort(() => Math.random() - 0.5).slice(0, 3);
-        const choices = [randomWord, ...distractors].sort(() => Math.random() - 0.5);
+        document.getElementById("fill-sentence-tamil").innerHTML = tamilSentence;
+        document.getElementById("fill-sentence-english").innerHTML = englishSentence;
 
-        document.getElementById("fill-choices").innerHTML = choices.map(w =>
-            `<button class="fill-choice-btn" data-word-id="${w.id}" onclick="checkFillChoice(this)">
-                ${w.ta}${w.pron ? `<br><small style="opacity:0.65; font-size:0.72rem;">${w.pron}</small>` : ''}
-            </button>`
-        ).join('');
+        setTimeout(() => {
+            currentFillInput = document.getElementById("fill-input");
+            if (currentFillInput) {
+                currentFillInput.focus();
+                currentFillInput.onkeypress = function(e) {
+                    if (e.key === 'Enter') checkFillAnswer();
+                };
+            }
+        }, 100);
     }
 
-    function checkFillChoice(btn) {
-        document.querySelectorAll('.fill-choice-btn').forEach(b => b.disabled = true);
-        const wordId = parseInt(btn.getAttribute('data-word-id'));
-        const feedback = document.getElementById("fill-feedback");
-        const tamilSentence = currentFillTemplate.tamil.replace('{word}', `<strong>${currentFillWord.ta}</strong>`);
+    function checkFillAnswer() {
+        if (!currentFillInput || !currentFillWord) return;
 
-        if (wordId === currentFillWord.id) {
-            btn.classList.add('correct');
+        const userAnswer = normalizePron(currentFillInput.value);
+        const correctPron = normalizePron(currentFillWord.pron || currentFillWord.ta);
+        const feedback = document.getElementById("fill-feedback");
+
+        if (userAnswer === correctPron) {
+            currentFillInput.className = "blank-input correct";
+            currentFillInput.disabled = true;
             fillScore++;
             document.getElementById("fill-score").innerText = fillScore;
-            feedback.innerHTML = `✓ &ldquo;${currentFillWord.en}&rdquo; = <strong>${currentFillWord.ta}</strong><br><small style="font-weight:normal; color:#444;">${tamilSentence}</small>`;
+            feedback.innerHTML = `✓ Correct! <strong>${currentFillWord.pron || currentFillWord.ta}</strong> &mdash; ${currentFillWord.ta}`;
             feedback.className = "fill-feedback correct";
+            setTimeout(() => generateFillSentence(), 2000);
         } else {
-            btn.classList.add('wrong');
-            document.querySelectorAll('.fill-choice-btn').forEach(b => {
-                if (parseInt(b.getAttribute('data-word-id')) === currentFillWord.id) b.classList.add('correct');
-            });
-            feedback.innerHTML = `✗ It was <strong>${currentFillWord.ta}</strong>${currentFillWord.pron ? ` (${currentFillWord.pron})` : ''}<br><small style="font-weight:normal; color:#444;">${tamilSentence}</small>`;
+            currentFillInput.className = "blank-input wrong";
+            feedback.innerHTML = `✗ Not quite! Answer: <strong>${currentFillWord.pron || currentFillWord.ta}</strong>`;
             feedback.className = "fill-feedback wrong";
+            setTimeout(() => {
+                currentFillInput.value = "";
+                currentFillInput.className = "blank-input";
+                currentFillInput.focus();
+                feedback.innerText = "";
+                feedback.className = "fill-feedback";
+            }, 2000);
         }
-        setTimeout(() => generateFillSentence(), 2500);
+    }
+
+    function skipFillQuestion() {
+        const feedback = document.getElementById("fill-feedback");
+        feedback.innerHTML = `Answer: <strong>${currentFillWord.pron || currentFillWord.ta}</strong> &mdash; ${currentFillWord.ta}`;
+        feedback.className = "fill-feedback";
+        setTimeout(() => generateFillSentence(), 1800);
     }
 
     // --- OPPOSITES MATCHING LOGIC ---
