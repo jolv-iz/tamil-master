@@ -475,6 +475,60 @@
             cursor: pointer; flex-shrink: 0;
         }
         .admin-delete-btn:hover { border-color: var(--error); color: var(--error); }
+
+        /* Inline edit styles for vocab list */
+        .vocab-item.editing {
+            background: #FFF9E6;
+            border: 2px solid var(--primary);
+            padding: 15px;
+        }
+        .vocab-edit-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+        .vocab-edit-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .vocab-edit-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            grid-column: 1 / -1;
+        }
+        .vocab-save-btn, .vocab-cancel-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .vocab-save-btn {
+            background: var(--success);
+            color: white;
+        }
+        .vocab-cancel-btn {
+            background: #ccc;
+            color: #333;
+        }
+        .vocab-item:not(.editing):hover {
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        .vocab-edit-hint {
+            grid-column: 1 / -1;
+            font-size: 0.75rem;
+            color: #888;
+            font-style: italic;
+            margin-top: -5px;
+        }
     </style>
 </head>
 <body>
@@ -896,9 +950,106 @@
             pronDiv.className = 'vocab-pron';
             pronDiv.innerText = `Pronunciation: ${item.pron}`;
             vocabItem.appendChild(pronDiv);
+        } else {
+            const pronDiv = document.createElement('div');
+            pronDiv.className = 'vocab-pron';
+            pronDiv.innerText = '';
+            vocabItem.appendChild(pronDiv);
         }
 
+        // Make item clickable to edit
+        vocabItem.onclick = () => editVocabItem(vocabItem, item);
+
         return vocabItem;
+    }
+
+    function editVocabItem(vocabElement, item) {
+        // Prevent editing if already in edit mode
+        if (vocabElement.classList.contains('editing')) return;
+
+        vocabElement.classList.add('editing');
+        vocabElement.onclick = null; // Disable click while editing
+
+        // Store original values for cancel
+        const originalEn = item.en;
+        const originalTa = item.ta;
+        const originalPron = item.pron || '';
+
+        // Create edit form
+        vocabElement.innerHTML = `
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px;">English</label>
+                <input type="text" class="vocab-edit-input" id="edit-en-${item.id}" value="${originalEn}">
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px;">Tamil</label>
+                <input type="text" class="vocab-edit-input" id="edit-ta-${item.id}" value="${originalTa}">
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px;">Pronunciation (optional)</label>
+                <input type="text" class="vocab-edit-input" id="edit-pron-${item.id}" value="${originalPron}">
+            </div>
+            <div class="vocab-edit-hint">Click outside or press Save to confirm changes</div>
+            <div class="vocab-edit-buttons">
+                <button class="vocab-save-btn" onclick="saveVocabEdit(${item.id})">Save</button>
+                <button class="vocab-cancel-btn" onclick="cancelVocabEdit(${item.id})">Cancel</button>
+            </div>
+        `;
+
+        // Focus on first input
+        setTimeout(() => document.getElementById(`edit-en-${item.id}`).focus(), 50);
+    }
+
+    function saveVocabEdit(itemId) {
+        const enInput = document.getElementById(`edit-en-${itemId}`);
+        const taInput = document.getElementById(`edit-ta-${itemId}`);
+        const pronInput = document.getElementById(`edit-pron-${itemId}`);
+
+        if (!enInput || !taInput) return;
+
+        const newEn = enInput.value.trim();
+        const newTa = taInput.value.trim();
+        const newPron = pronInput.value.trim();
+
+        if (!newEn || !newTa) {
+            alert('English and Tamil fields cannot be empty!');
+            return;
+        }
+
+        // Find and update the item in data array
+        const item = data.find(d => d.id === itemId);
+        if (item) {
+            item.en = newEn;
+            item.ta = newTa;
+            item.pron = newPron;
+
+            // If it's a custom word, update customWords array and save
+            if (item._custom) {
+                const customItem = customWords.find(w => w.id === itemId);
+                if (customItem) {
+                    customItem.en = newEn;
+                    customItem.ta = newTa;
+                    customItem.pron = newPron;
+                    saveCustomWords();
+                }
+            }
+
+            // Update currentList if it's filtered
+            const listItem = currentList.find(d => d.id === itemId);
+            if (listItem) {
+                listItem.en = newEn;
+                listItem.ta = newTa;
+                listItem.pron = newPron;
+            }
+        }
+
+        // Refresh the vocab list display
+        generateVocabList();
+    }
+
+    function cancelVocabEdit(itemId) {
+        // Simply refresh the vocab list to restore original state
+        generateVocabList();
     }
 
     // INITIALIZATION
