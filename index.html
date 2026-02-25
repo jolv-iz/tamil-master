@@ -43,6 +43,7 @@
             text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 10;
+            position: relative;
         }
 
         h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
@@ -406,12 +407,85 @@
             font-weight: bold;
         }
 
+        /* --- ADMIN PANEL STYLES --- */
+        #admin-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 10px 0;
+            box-sizing: border-box;
+        }
+        #admin-panel {
+            background: white;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        #admin-panel h2 { margin: 0 0 4px 0; font-size: 1.1rem; color: var(--primary); }
+        #admin-panel .admin-hint { margin: 0 0 15px 0; font-size: 0.8rem; color: #888; }
+        .admin-field { margin-bottom: 12px; }
+        .admin-field label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; color: #555; }
+        .admin-field input, .admin-field select {
+            width: 100%; padding: 10px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 1rem; box-sizing: border-box; flex-grow: unset;
+        }
+        .admin-field input:focus { outline: none; border-color: var(--primary); }
+        .admin-actions { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-admin-add {
+            background: var(--primary); color: white; border: none;
+            padding: 10px 16px; border-radius: 8px; font-size: 0.9rem;
+            cursor: pointer; font-weight: bold; flex: 1;
+        }
+        .btn-admin-export {
+            background: var(--success); color: white; border: none;
+            padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; font-weight: bold;
+        }
+        .btn-admin-close {
+            background: #eee; color: #555; border: none;
+            padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+        }
+        .admin-msg {
+            text-align: center; padding: 8px; border-radius: 8px;
+            font-size: 0.85rem; font-weight: bold; min-height: 20px; margin-top: 10px;
+        }
+        .admin-msg.success { background: #e8f5e9; color: var(--success); }
+        .admin-msg.error { background: #ffebee; color: var(--error); }
+        .admin-word-list {
+            margin-top: 20px; border-top: 1px solid #eee;
+            padding-top: 15px; max-height: 280px; overflow-y: auto;
+        }
+        .admin-word-list h3 { margin: 0 0 10px 0; font-size: 0.9rem; color: #777; }
+        .admin-word-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid #f5f5f5; gap: 8px;
+        }
+        .admin-word-info { flex: 1; font-size: 0.88rem; }
+        .admin-word-en { font-weight: bold; color: var(--text); }
+        .admin-word-ta { color: var(--primary); }
+        .admin-word-cat { color: #aaa; font-size: 0.78rem; }
+        .admin-delete-btn {
+            background: none; border: 1px solid #ddd; color: #bbb;
+            padding: 4px 8px; border-radius: 6px; font-size: 0.8rem;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .admin-delete-btn:hover { border-color: var(--error); color: var(--error); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Tamil Master</h1>
+    <h1 onclick="handleTitleTap()" style="cursor:default; user-select:none;">Tamil Master</h1>
+    <button id="admin-btn" onclick="openAdmin()" title="Add words" style="
+        position:absolute; top:50%; right:12px; transform:translateY(-50%);
+        background:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.5);
+        color:white; border-radius:8px; padding:5px 9px; font-size:0.85rem;
+        cursor:pointer; line-height:1;">&#43;</button>
 </header>
 
 <div class="controls">
@@ -541,6 +615,9 @@
     let score = 0;
     let currentMode = 'flash';
     let learningDirection = 'en-ta'; // 'en-ta' or 'ta-en'
+    let customWords = []; // Words added via admin panel, stored in localStorage
+    let adminTapCount = 0;
+    let adminTapTimer = null;
     
     // Memory tracking for spaced repetition
     let wordMemory = {}; // {wordId: {level: 0-2, lastReview: timestamp, reviewCount: 0}}
@@ -826,6 +903,7 @@
 
     // INITIALIZATION
     window.onload = function() {
+        loadCustomWords(); // merge custom words into data array before anything else
         populateCategories();
         loadStats();
         loadMemory();
@@ -878,14 +956,18 @@
 
     // Populate Categories
     function populateCategories() {
-        const categories = [...new Set(data.map(item => item.cat))];
+        const categories = [...new Set(data.map(item => item.cat))].sort();
         const select = document.getElementById("categoryFilter");
+        const current = select.value;
+        select.innerHTML = '<option value="All">All Categories</option>';
         categories.forEach(cat => {
             let option = document.createElement("option");
             option.value = cat;
             option.text = cat;
             select.appendChild(option);
         });
+        // restore previous selection if it still exists
+        if ([...select.options].some(o => o.value === current)) select.value = current;
     }
 
     function filterCategory() {
@@ -1258,7 +1340,205 @@
         }
     }
 
+    // =====================
+    // ADMIN PANEL
+    // =====================
+
+    // Secret trigger: tap the "Tamil Master" title 5 times to open
+    function handleTitleTap() {
+        adminTapCount++;
+        if (adminTapTimer) clearTimeout(adminTapTimer);
+        if (adminTapCount >= 3) {
+            adminTapCount = 0;
+            openAdmin();
+        } else {
+            adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2000);
+        }
+    }
+
+    function openAdmin() {
+        // Populate category dropdown from existing categories
+        const cats = [...new Set(data.map(w => w.cat))].sort();
+        const catSel = document.getElementById('admin-cat');
+        catSel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        // Clear form
+        ['admin-en', 'admin-ta', 'admin-pron'].forEach(id => document.getElementById(id).value = '');
+        const msg = document.getElementById('admin-msg');
+        msg.className = 'admin-msg';
+        msg.innerText = '';
+
+        renderAdminWordList();
+        document.getElementById('admin-overlay').style.display = 'block';
+        setTimeout(() => document.getElementById('admin-en').focus(), 150);
+    }
+
+    function closeAdmin() {
+        document.getElementById('admin-overlay').style.display = 'none';
+    }
+
+    function handleAdminOverlayClick(e) {
+        if (e.target === document.getElementById('admin-overlay')) closeAdmin();
+    }
+
+    function adminAddWord() {
+        const en = document.getElementById('admin-en').value.trim();
+        const ta = document.getElementById('admin-ta').value.trim();
+        const pron = document.getElementById('admin-pron').value.trim();
+        const cat = document.getElementById('admin-cat').value;
+        const msg = document.getElementById('admin-msg');
+
+        if (!en || !ta) {
+            msg.className = 'admin-msg error';
+            msg.innerText = 'English and Tamil fields are required.';
+            return;
+        }
+
+        // IDs start at 10000 to never conflict with the main data file
+        const maxId = customWords.length > 0 ? Math.max(...customWords.map(w => w.id)) : 9999;
+        const newWord = { id: maxId + 1, en, ta, pron, cat, _custom: true };
+
+        customWords.push(newWord);
+        data.push(newWord); // add to live data so it's immediately usable
+
+        // Initialise spaced-repetition tracking for the new word
+        if (!wordMemory[newWord.id]) {
+            wordMemory[newWord.id] = { level: 0, lastReview: 0, reviewCount: 0 };
+            saveMemory();
+        }
+
+        saveCustomWords();
+        populateCategories();
+        filterCategory();
+
+        msg.className = 'admin-msg success';
+        msg.innerText = `"${en}" added! (${customWords.length} custom word${customWords.length !== 1 ? 's' : ''} total)`;
+
+        ['admin-en', 'admin-ta', 'admin-pron'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('admin-en').focus();
+        renderAdminWordList();
+    }
+
+    function adminDeleteWord(id) {
+        const word = customWords.find(w => w.id === id);
+        if (!word || !confirm(`Remove "${word.en}" from your custom words?`)) return;
+
+        customWords = customWords.filter(w => w.id !== id);
+        const idx = data.findIndex(w => w.id === id);
+        if (idx !== -1) data.splice(idx, 1);
+
+        saveCustomWords();
+        populateCategories();
+        filterCategory();
+        renderAdminWordList();
+
+        const msg = document.getElementById('admin-msg');
+        msg.className = 'admin-msg success';
+        msg.innerText = `"${word.en}" removed.`;
+    }
+
+    function saveCustomWords() {
+        localStorage.setItem('tamilMasterCustomWords', JSON.stringify(customWords));
+    }
+
+    function loadCustomWords() {
+        const saved = localStorage.getItem('tamilMasterCustomWords');
+        if (!saved) return;
+        customWords = JSON.parse(saved);
+        // Merge into the live data array, avoiding duplicates
+        customWords.forEach(w => {
+            if (!data.find(d => d.id === w.id)) data.push(w);
+        });
+    }
+
+    function renderAdminWordList() {
+        const container = document.getElementById('admin-word-list');
+        if (customWords.length === 0) {
+            container.innerHTML = '<h3>No custom words yet — add your first one above.</h3>';
+            return;
+        }
+        container.innerHTML = `<h3>Your custom words (${customWords.length})</h3>` +
+            customWords.map(w => `
+                <div class="admin-word-item">
+                    <div class="admin-word-info">
+                        <div class="admin-word-en">${w.en}</div>
+                        <div class="admin-word-ta">${w.ta}${w.pron ? ` · ${w.pron}` : ''}</div>
+                        <div class="admin-word-cat">${w.cat}</div>
+                    </div>
+                    <button class="admin-delete-btn" onclick="adminDeleteWord(${w.id})">&#x2715;</button>
+                </div>`
+            ).join('');
+    }
+
+    function adminExport() {
+        const today = new Date().toISOString().split('T')[0];
+
+        // Strip the internal _custom flag before exporting
+        const cleanData = data.map(({ _custom, ...w }) => w);
+
+        const content = [
+            `// Tamil Master Vocabulary Database`,
+            `// Last updated: ${today}`,
+            `// Total words: ${cleanData.length}`,
+            ``,
+            `const data = ${JSON.stringify(cleanData, null, 4)};`,
+            ``,
+            `// Opposite pairs for matching game`,
+            `const oppositePairs = ${JSON.stringify(oppositePairs, null, 4)};`,
+            ``,
+            `// Sentence templates for fill-in-the-blank exercises`,
+            `const sentenceTemplates = ${JSON.stringify(sentenceTemplates, null, 4)};`,
+        ].join('\n');
+
+        const blob = new Blob([content], { type: 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tamil_words_${today}.js`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        const msg = document.getElementById('admin-msg');
+        msg.className = 'admin-msg success';
+        msg.innerText = `Downloaded! Rename to tamil_words.js and upload to GitHub.`;
+    }
+
 </script>
+
+<!-- ADMIN PANEL: tap "Tamil Master" title 5 times to open -->
+<div id="admin-overlay" onclick="handleAdminOverlayClick(event)">
+    <div id="admin-panel">
+        <h2>+ Add New Word</h2>
+        <p class="admin-hint">Words save to this device. Use Export to generate an updated file for GitHub.</p>
+
+        <div class="admin-field">
+            <label>English</label>
+            <input type="text" id="admin-en" placeholder="e.g. To eat" autocomplete="off">
+        </div>
+        <div class="admin-field">
+            <label>Tamil</label>
+            <input type="text" id="admin-ta" placeholder="e.g. Saapidu" autocomplete="off">
+        </div>
+        <div class="admin-field">
+            <label>Pronunciation (optional)</label>
+            <input type="text" id="admin-pron" placeholder="e.g. Saa-pi-du" autocomplete="off">
+        </div>
+        <div class="admin-field">
+            <label>Category</label>
+            <select id="admin-cat"></select>
+        </div>
+
+        <div id="admin-msg" class="admin-msg"></div>
+
+        <div class="admin-actions">
+            <button class="btn-admin-add" onclick="adminAddWord()">Add Word</button>
+            <button class="btn-admin-export" onclick="adminExport()">Export .js</button>
+            <button class="btn-admin-close" onclick="closeAdmin()">Close</button>
+        </div>
+
+        <div class="admin-word-list" id="admin-word-list"></div>
+    </div>
+</div>
 
 </body>
 </html>
