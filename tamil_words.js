@@ -276,100 +276,419 @@ const oppositePairs = [
     [148, 149]  // Yes - No
 ];
 
-// Sentence templates inspired by Tamil children's books
-// All sentences use romanized Tamil (no Tamil script)
-// {word} is the blank to fill in
-// <mark> tags highlight new vocabulary words introduced
-const sentenceTemplates = [
-    // Morning/Time stories
-    {tamil: "{word} elundhirichen, kaalai vanakkam sollanum", english: "I woke up in the {word}, must say good morning", categories: ["Time"]},
-    {tamil: "Paati {word} samaichu tharuvaanga", english: "Grandma will cook for {word}", categories: ["Time/Food"]},
-    {tamil: "Naan {word} <mark>paal kudichen</mark>", english: "I <mark>drank milk</mark> in the {word}", categories: ["Time", "Time/Food"]},
+// Complete sentence pairs for fill-in-the-blank exercises
+// Inspired by Tamil children's books with natural, grammatically correct sentences
+// All use romanized Tamil (no Tamil script)
+const sentencePairs = [
+    // EASY - Greetings & Daily Routines (10 sentences)
+    {
+        id: 1,
+        english: "Good morning, how are you?",
+        tamil: "Kaalai vanakkam, neenga eppadi irukeenga?",
+        blanks: ["Kaalai vanakkam"],
+        hint: "Kaa-lai va-nak-kam",
+        difficulty: "easy"
+    },
+    {
+        id: 2,
+        english: "I woke up in the morning",
+        tamil: "Naan kaalai-la elundhiruchen",
+        blanks: ["kaalai-la"],
+        hint: "morning + in (la suffix)",
+        difficulty: "easy"
+    },
+    {
+        id: 3,
+        english: "Grandma cooked breakfast",
+        tamil: "Paati kaalai saapadu samaichchanga",
+        blanks: ["kaalai saapadu"],
+        hint: "Kaa-lai saa-pa-du",
+        difficulty: "easy"
+    },
+    {
+        id: 4,
+        english: "I drink milk in the morning",
+        tamil: "Naan kaalai-la paal kudikuren",
+        blanks: ["paal"],
+        hint: "milk",
+        difficulty: "easy"
+    },
+    {
+        id: 5,
+        english: "Good night, see you tomorrow",
+        tamil: "Rathiri vanakkam, naalaiku paakalam",
+        blanks: ["Rathiri vanakkam"],
+        hint: "Raa-thri va-nak-kam",
+        difficulty: "easy"
+    },
+    {
+        id: 6,
+        english: "Today is a good day",
+        tamil: "Inaiku nalla naal",
+        blanks: ["Inaiku"],
+        hint: "today",
+        difficulty: "easy"
+    },
+    {
+        id: 7,
+        english: "I am going home now",
+        tamil: "Naan ippo veetuku poren",
+        blanks: ["veetuku"],
+        hint: "veetu + ku (to suffix)",
+        difficulty: "easy"
+    },
+    {
+        id: 8,
+        english: "My name is good",
+        tamil: "En peru nalladu",
+        blanks: ["peru"],
+        hint: "name/person",
+        difficulty: "easy"
+    },
+    {
+        id: 9,
+        english: "Where is the house?",
+        tamil: "Veedu yenga iruku?",
+        blanks: ["yenga"],
+        hint: "where",
+        difficulty: "easy"
+    },
+    {
+        id: 10,
+        english: "Yes, I like it very much",
+        tamil: "Aama, enaku romba pudikum",
+        blanks: ["Aama"],
+        hint: "yes",
+        difficulty: "easy"
+    },
 
-    // Family in stories
-    {tamil: "En {word} romba <mark>azhaga</mark> irukanga", english: "My {word} is very <mark>beautiful/handsome</mark>", categories: ["Family", "Family-Extended"]},
-    {tamil: "{word} enaku <mark>kadhai solluvaanga</mark>", english: "{word} will <mark>tell me a story</mark>", categories: ["Family", "Family-Extended"]},
-    {tamil: "Naan en {word} kuda <mark>vilayaaduren</mark>", english: "I <mark>play</mark> with my {word}", categories: ["Family", "Family-Extended"]},
-    {tamil: "En {word} veetukku vandhaanga", english: "My {word} came to the house", categories: ["Family", "Family-Extended"]},
+    // EASY-MEDIUM - Family & Relationships (10 sentences)
+    {
+        id: 11,
+        english: "My father is at home",
+        tamil: "En appa veetla irukaru",
+        blanks: ["appa"],
+        hint: "father",
+        difficulty: "easy"
+    },
+    {
+        id: 12,
+        english: "Mother is cooking food",
+        tamil: "Amma saapadu samaikuranga",
+        blanks: ["Amma"],
+        hint: "mother",
+        difficulty: "easy"
+    },
+    {
+        id: 13,
+        english: "Grandma tells me stories",
+        tamil: "Paati enaku kadhai solluvaanga",
+        blanks: ["Paati"],
+        hint: "grandmother",
+        difficulty: "easy"
+    },
+    {
+        id: 14,
+        english: "I play with my older brother",
+        tamil: "Naan en anna kuda vilayaaduren",
+        blanks: ["anna"],
+        hint: "older brother",
+        difficulty: "easy"
+    },
+    {
+        id: 15,
+        english: "My older sister is very beautiful",
+        tamil: "En akka romba azhaga irukanga",
+        blanks: ["akka"],
+        hint: "older sister",
+        difficulty: "easy"
+    },
+    {
+        id: 16,
+        english: "Younger brother came to the house",
+        tamil: "Thumbi veetuku vandhaan",
+        blanks: ["Thumbi"],
+        hint: "younger brother",
+        difficulty: "medium"
+    },
+    {
+        id: 17,
+        english: "Uncle is a good person",
+        tamil: "Mama nalla per",
+        blanks: ["Mama"],
+        hint: "uncle",
+        difficulty: "easy"
+    },
+    {
+        id: 18,
+        english: "My house is very big",
+        tamil: "En veedu romba periya",
+        blanks: ["En"],
+        hint: "my",
+        difficulty: "easy"
+    },
+    {
+        id: 19,
+        english: "Your house is here, my house is there",
+        tamil: "Unga veedu inga, en veedu anga",
+        blanks: ["Unga"],
+        hint: "your",
+        difficulty: "easy"
+    },
+    {
+        id: 20,
+        english: "Our family is happy",
+        tamil: "Namma kudumbam sandhoshamaa iruku",
+        blanks: ["Namma"],
+        hint: "our (inclusive)",
+        difficulty: "medium"
+    },
 
-    // Daily life phrases from children's books
-    {tamil: "Idhu {word}, adhu periya", english: "This is {word}, that is big", categories: ["Adjective"]},
-    {tamil: "Naan {word} irukken, neenga anga irukeengala?", english: "I am {word}, are you there?", categories: ["Location", "Demonstrative"]},
-    {tamil: "{word} saapadu romba <mark>rusiyaa</mark> irundhuchu", english: "The {word} food was very <mark>tasty</mark>", categories: ["Time/Food", "Taste"]},
+    // MEDIUM - Locations & Directions (10 sentences)
+    {
+        id: 21,
+        english: "The book is on the table",
+        tamil: "Pusthagam meja maela iruku",
+        blanks: ["maela"],
+        hint: "on/above",
+        difficulty: "medium"
+    },
+    {
+        id: 22,
+        english: "The cat is under the bed",
+        tamil: "Poonai kattil keezha iruku",
+        blanks: ["keezha"],
+        hint: "under/below",
+        difficulty: "medium"
+    },
+    {
+        id: 23,
+        english: "I am standing in front of the house",
+        tamil: "Naan veedu munnadi ninnutruken",
+        blanks: ["munnadi"],
+        hint: "in front",
+        difficulty: "medium"
+    },
+    {
+        id: 24,
+        english: "The garden is behind the house",
+        tamil: "Thotham veedu pinnadi iruku",
+        blanks: ["pinnadi"],
+        hint: "behind",
+        difficulty: "medium"
+    },
+    {
+        id: 25,
+        english: "Come here, don't go there",
+        tamil: "Inga vaa, anga pogaadhe",
+        blanks: ["inga"],
+        hint: "here",
+        difficulty: "medium"
+    },
+    {
+        id: 26,
+        english: "I am inside the house",
+        tamil: "Naan veedu ulla iruken",
+        blanks: ["ulla"],
+        hint: "inside",
+        difficulty: "medium"
+    },
+    {
+        id: 27,
+        english: "The children are playing outside",
+        tamil: "Pasanga veliya vilayaadranga",
+        blanks: ["veliya"],
+        hint: "outside",
+        difficulty: "medium"
+    },
+    {
+        id: 28,
+        english: "This is small, that is big",
+        tamil: "Idhu chinna, adhu periya",
+        blanks: ["chinna"],
+        hint: "small",
+        difficulty: "medium"
+    },
+    {
+        id: 29,
+        english: "I want a little food, not too much",
+        tamil: "Enaku konjam saapadu venum, romba vendam",
+        blanks: ["konjam"],
+        hint: "a little",
+        difficulty: "medium"
+    },
+    {
+        id: 30,
+        english: "There are many people here",
+        tamil: "Inga neraiya per irukanga",
+        blanks: ["neraiya"],
+        hint: "many/a lot",
+        difficulty: "medium"
+    },
 
-    // Question words from storybooks
-    {tamil: "Nee {word} poore? Veetuku poganuma?", english: "Where are you going? Should I go home?", categories: ["Question Word"], exclude: ["What", "When", "Who", "Why", "How", "How many", "How much", "For what", "Which", "Whose"]},
-    {tamil: "{word} ippadiyellam aayiduchu?", english: "{word} did this happen?", categories: ["Question Word"], exclude: ["Where", "Who", "How many", "How much", "From where", "For what", "Which", "Whose"]},
-    {tamil: "Idhu {word} veedu? Enaku theriyala", english: "This is {word} house? I don't know", categories: ["Question Word"], exclude: ["What", "When", "Where", "Why", "How", "How many", "How much", "For what", "Which"]},
+    // MEDIUM - Time & When (8 sentences)
+    {
+        id: 31,
+        english: "I ate food yesterday",
+        tamil: "Naan nethu saapadu saapten",
+        blanks: ["nethu"],
+        hint: "yesterday",
+        difficulty: "medium"
+    },
+    {
+        id: 32,
+        english: "Tomorrow I will go to school",
+        tamil: "Naalaiku naan schoolku poven",
+        blanks: ["Naalaiku"],
+        hint: "tomorrow",
+        difficulty: "medium"
+    },
+    {
+        id: 33,
+        english: "I saw mother yesterday",
+        tamil: "Naan nethu amma-va paarthen",
+        blanks: ["nethu"],
+        hint: "yesterday",
+        difficulty: "medium"
+    },
+    {
+        id: 34,
+        english: "We worked hard last week",
+        tamil: "Naanga ponna vaaram kashtappattom",
+        blanks: ["ponna vaaram"],
+        hint: "last week",
+        difficulty: "medium"
+    },
+    {
+        id: 35,
+        english: "I will sleep at 9 o'clock",
+        tamil: "Naan onbathu mani neramukku thoonguven",
+        blanks: ["onbathu"],
+        hint: "nine (9)",
+        difficulty: "medium"
+    },
+    {
+        id: 36,
+        english: "In the month of January it's cold",
+        tamil: "January maasam-la kuliraa irukum",
+        blanks: ["maasam-la"],
+        hint: "month + in (la suffix)",
+        difficulty: "medium"
+    },
+    {
+        id: 37,
+        english: "One day, a bird came",
+        tamil: "Oru naal, oru kuruvi vandhudhu",
+        blanks: ["Oru naal"],
+        hint: "one day",
+        difficulty: "medium"
+    },
+    {
+        id: 38,
+        english: "Now I understand, before I didn't know",
+        tamil: "Ippo enaku puriyuthu, munnaadi theriyala",
+        blanks: ["Ippo"],
+        hint: "now",
+        difficulty: "medium"
+    },
 
-    // Simple narratives
-    {tamil: "Oru naal, {word} <mark>nadandhu poonen</mark>", english: "One day, I <mark>walked</mark> in the {word}", categories: ["Time"], exclude: ["Yesterday", "Today", "Tomorrow", "Day before yesterday", "Day after tomorrow", "Now", "Then/while/during", "Week", "Month", "Year", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "2 weeks before", "2 months after", "Last week", "This week", "Next week"]},
-    {tamil: "{word} romba <mark>santhoshamaa</mark> irundhen", english: "I was very <mark>happy</mark> {word}", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Now", "Then/while/during", "Week", "Month", "Year", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "Breakfast", "Lunch", "Dinner", "2 weeks before", "2 months after", "Last week", "This week", "Next week"]},
-    {tamil: "Naan {word} veetla irundhuten", english: "I was at home {word}", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Now", "Then/while/during", "Week", "Month", "Year", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "Breakfast", "Lunch", "Dinner", "This week", "Next week", "2 months after"]},
+    // MEDIUM-HARD - Feelings & Descriptions (8 sentences)
+    {
+        id: 39,
+        english: "This food is very sweet",
+        tamil: "Indha saapadu romba inipu",
+        blanks: ["inipu"],
+        hint: "sweet",
+        difficulty: "medium"
+    },
+    {
+        id: 40,
+        english: "The curry is very spicy",
+        tamil: "Kuzhambu romba kaaram",
+        blanks: ["kaaram"],
+        hint: "spicy",
+        difficulty: "medium"
+    },
+    {
+        id: 41,
+        english: "I like sour taste",
+        tamil: "Enaku pulipu pudikum",
+        blanks: ["pulipu"],
+        hint: "sour",
+        difficulty: "medium"
+    },
+    {
+        id: 42,
+        english: "This is old, that is new",
+        tamil: "Idhu palaya, adhu pudhusu",
+        blanks: ["palaya"],
+        hint: "old",
+        difficulty: "medium"
+    },
+    {
+        id: 43,
+        english: "That is correct, this is wrong",
+        tamil: "Adhu sari, idhu thappu",
+        blanks: ["sari"],
+        hint: "correct/right",
+        difficulty: "medium"
+    },
+    {
+        id: 44,
+        english: "Tell the truth, don't tell lies",
+        tamil: "Unmai sollu, poi sollaaadhe",
+        blanks: ["Unmai"],
+        hint: "truth",
+        difficulty: "hard"
+    },
+    {
+        id: 45,
+        english: "I am hungry, please give me food",
+        tamil: "Enaku pasikkuthu, please saapadu kudunga",
+        blanks: ["pasikkuthu"],
+        hint: "hungry (to me)",
+        difficulty: "hard"
+    },
+    {
+        id: 46,
+        english: "This is enough, I don't want more",
+        tamil: "Idhu podhum, enaku adhigam vendam",
+        blanks: ["podhum"],
+        hint: "enough",
+        difficulty: "hard"
+    },
 
-    // Common phrases kids use
-    {tamil: "Enaku {word} venum, please thaanga", english: "I want {word}, please give", categories: ["Adjective", "Quantity", "Demonstrative"]},
-    {tamil: "Idhu {word} iruku, enaku pudikkala", english: "This is {word}, I don't like it", categories: ["Taste", "Adjective"]},
-    {tamil: "Naan {word} <mark>odi ponen</mark>", english: "I <mark>ran</mark> {word}", categories: ["Location/Adverb"]},
-
-    // Numbers in stories
-    {tamil: "Anga {word} <mark>pookkal</mark> irukku", english: "There are {word} <mark>flowers</mark> there", categories: ["Number"]},
-    {tamil: "Enaku {word} <mark>friends</mark> irukanga", english: "I have {word} <mark>friends</mark>", categories: ["Number"]},
-    {tamil: "Naan {word} mani neramukku <mark>thoonguven</mark>", english: "I will <mark>sleep</mark> at {word} o'clock", categories: ["Number"]},
-
-    // Location and direction
-    {tamil: "Paiyan {word} ninnutaan", english: "The boy stood {word}", categories: ["Location/Adverb"]},
-    {tamil: "Naan {word} <mark>paarthen</mark>, yaarum illai", english: "I <mark>looked</mark> {word}, no one there", categories: ["Location/Adverb"]},
-    {tamil: "Amma {word} irukkanga, naan keezha irukkuren", english: "Mother is {word}, I am below", categories: ["Location/Adverb"]},
-
-    // Opposites in stories
-    {tamil: "Idhu {word}, adhu pudhusu", english: "This is {word}, that is new", categories: ["Adjective"]},
-    {tamil: "Naan {word} paakkuren, apram pinnadi paakuren", english: "I look {word}, then look back", categories: ["Location/Adverb"]},
-    {tamil: "Ippo {word}, appo apdi irundhuchu", english: "Now like {word}, then it was like that", categories: ["Demonstrative", "Manner"]},
-
-    // Feelings and states
-    {tamil: "Enaku {word} saapadu romba pudikum", english: "I really like {word} food", categories: ["Time/Food", "Taste"]},
-    {tamil: "Naan {word} paathuten, romba <mark>azhaga</mark> irundhuchu", english: "I saw {word}, it was very <mark>beautiful</mark>", categories: ["People", "Family"]},
-
-    // Want/Like/Know from stories
-    {tamil: "Enaku {word}, ungaluku pudikuma?", english: "I {word}, do you like it?", categories: ["Verb"], exclude: ["I was", "I am", "I will be", "You were", "You are", "You will be", "He was", "He is", "He will be", "She/They were", "She/They are", "She/They will be", "We were", "We are", "We will be", "It was", "It is", "It will be", "Was I?", "Were you?", "Was he?", "Were she/they?", "Were we?", "Was it?", "Am I?", "Are you?", "Is he?", "Are she/they?", "Are we?", "Is it?", "Will I be?", "Will you be?", "Will he be?", "Will she/they be?", "Will we be?", "Will it be?", "Didn't like", "Don't you like?", "Didn't you like?", "Didn't know", "Don't you know?", "Didn't you know?", "Didn't understand", "Don't you understand?", "Didn't you understand?", "Do you like?", "Knew", "Do you know?", "Understood", "Do you understand?", "Don't want", "Don't you want?", "Do you want?", "Understand (general)", "Know (general)"]},
-    {tamil: "Enaku {word}, please konjam thaanga", english: "I {word}, please give me a little", categories: ["Verb"], exclude: ["I was", "I am", "I will be", "You were", "You are", "You will be", "He was", "He is", "He will be", "She/They were", "She/They are", "She/They will be", "We were", "We are", "We will be", "It was", "It is", "It will be", "Was I?", "Were you?", "Was he?", "Were she/they?", "Were we?", "Was it?", "Am I?", "Are you?", "Is he?", "Are she/they?", "Are we?", "Is it?", "Will I be?", "Will you be?", "Will he be?", "Will she/they be?", "Will we be?", "Will it be?", "Didn't like", "Don't you like?", "Didn't you like?", "Didn't know", "Don't you know?", "Didn't you know?", "Didn't understand", "Don't you understand?", "Didn't you understand?", "Liked", "Do you like?", "Knew", "Do you know?", "Understood", "Do you understand?", "Don't you want?", "Do you want?", "Like (general)", "Understand (general)", "Know (general)"]},
-    {tamil: "Ungaluku {word}? Enaku theriyum", english: "Do you {word}? I know", categories: ["Verb"], exclude: ["I was", "I am", "I will be", "You were", "You are", "You will be", "He was", "He is", "He will be", "She/They were", "She/They are", "She/They will be", "We were", "We are", "We will be", "It was", "It is", "It will be", "Was I?", "Were you?", "Was he?", "Were she/they?", "Were we?", "Was it?", "Am I?", "Are you?", "Is he?", "Are she/they?", "Are we?", "Is it?", "Will I be?", "Will you be?", "Will he be?", "Will she/they be?", "Will we be?", "Will it be?", "Didn't like", "Don't you like?", "Didn't you like?", "Didn't know", "Don't you know?", "Didn't you know?", "Didn't understand", "Don't you understand?", "Didn't you understand?", "Liked", "Do you like?", "Knew", "Understood", "Don't want", "Don't you want?", "Want", "Do you want?", "Like (general)", "Understand (general)"]},
-
-    // Possessive pronouns in narratives
-    {tamil: "{word} veedu romba periya, enoda veedu chinna", english: "{word} house is very big, my house is small", categories: ["Possessive"]},
-    {tamil: "Idhu {word} saapadu, adhu en saapadu", english: "This is {word} food, that is my food", categories: ["Possessive"]},
-
-    // Yes/No and conjunctions
-    {tamil: "{word}, naan vandhutten", english: "{word}, I came", categories: ["Affirmation/Negation"]},
-    {tamil: "Naan poganum, {word} time illa", english: "I must go, {word} no time", categories: ["Conjunction"]},
-    {tamil: "Idhu nalladhu {word} kettadhu?", english: "Is this good {word} bad?", categories: ["Affirmation/Negation"]},
-
-    // Demonstratives in children's phrases
-    {tamil: "{word} en paiyan, adhu ungaloda ponnu", english: "{word} is my son, that is your daughter", categories: ["Demonstrative", "People"]},
-    {tamil: "Naan {word} mathiri pannuven", english: "I will do like {word}", categories: ["Demonstrative", "Manner"]},
-
-    // Time-related narratives
-    {tamil: "{word} amma koovittaanga", english: "{word} mother called", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Now", "Then/while/during", "Week", "Month", "Year", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "Breakfast", "Lunch", "Dinner", "This week", "Next week", "2 weeks before", "2 months after"]},
-    {tamil: "Naan {word} veetuku poren", english: "I am going home {word}", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Now", "Then/while/during", "Week", "Month", "Year", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "Breakfast", "Lunch", "Dinner", "Yesterday", "This week", "Next week", "2 weeks before", "2 months after", "Last week"]},
-
-    // Simple conclusions from stories
-    {tamil: "Adhukkaaga {word} <mark>kashtappattom</mark>", english: "For that we {word} <mark>struggled/worked hard</mark>", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Yesterday", "Today", "Tomorrow", "Day before yesterday", "Day after tomorrow", "Now", "Then/while/during", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "Breakfast", "Lunch", "Dinner", "2 weeks before", "2 months after", "Last week", "This week", "Next week"]},
-    {tamil: "{word} veetla irundhaanga, ippo veliya poittaanga", english: "They were at home {word}, now they went outside", categories: ["Time"], exclude: ["Morning", "Afternoon", "Evening", "Night", "Now", "Then/while/during", "Today", "Tomorrow", "Day after tomorrow", "Week", "Month", "Year", "Hour", "Minute", "Second", "Clock", "Day", "Good Morning", "Good Afternoon", "Good Evening", "Good night", "Breakfast", "Lunch", "Dinner", "2 weeks before", "2 months after", "This week", "Next week"]},
-
-    // Dative pronouns
-    {tamil: "{word} romba <mark>pasikkuthu</mark>", english: "I am very <mark>hungry</mark> (to {word})", categories: ["Personal Pronoun-Dative", "Non Personal Pronoun"]},
-    {tamil: "{word} puriyuthu, avangaluku puriyala", english: "I understand (to {word}), they don't understand", categories: ["Personal Pronoun-Dative"]},
-
-    // Postpositions
-    {tamil: "Naan appa {word} vandhen", english: "I came {word} father", categories: ["Postposition"], exclude: ["In/at", "To - Inside", "To - Nearby", "On", "Under", "From"]},
-    {tamil: "Paiyan veedu {word} irukaan", english: "The boy is {word} the house", categories: ["Postposition"], exclude: ["To - Inside", "To - Nearby", "From"]},
-
-    // Abstract concepts
-    {tamil: "Idhu {word}, poi sollakoodadhu", english: "This is {word}, must not tell lies", categories: ["Abstract"]},
-    {tamil: "Adhu {word}, naan sariyana answer solluren", english: "That is {word}, I will tell the correct answer", categories: ["Abstract"]},
-
-    // Quantity phrases
-    {tamil: "Konjam {word} kudunga", english: "Give a little {word}", categories: ["Quantity", "Adjective"]},
-    {tamil: "{word} saapadu podhum, adhigam vendam", english: "{word} food is enough, don't want more", categories: ["Quantity"]}
+    // HARD - Questions & Complex Sentences (6 sentences)
+    {
+        id: 47,
+        english: "Who is that person?",
+        tamil: "Andha per yaaru?",
+        blanks: ["yaaru"],
+        hint: "who",
+        difficulty: "hard"
+    },
+    {
+        id: 48,
+        english: "Why did this happen?",
+        tamil: "Idhu yaen aayiduchu?",
+        blanks: ["yaen"],
+        hint: "why",
+        difficulty: "hard"
+    },
+    {
+        id: 49,
+        english: "How do you do this?",
+        tamil: "Neenga idha eppadi seiringa?",
+        blanks: ["eppadi"],
+        hint: "how",
+        difficulty: "hard"
+    },
+    {
+        id: 50,
+        english: "Do you understand? Yes, I understand",
+        tamil: "Ungaluku puriyutha? Aama, enaku puriyuthu",
+        blanks: ["puriyuthu"],
+        hint: "understand (to me)",
+        difficulty: "hard"
+    }
 ];

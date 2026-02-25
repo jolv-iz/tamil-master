@@ -643,7 +643,7 @@
             <div class="sentence-english" id="fill-sentence-english"></div>
         </div>
         <div class="fill-feedback" id="fill-feedback"></div>
-        <div class="hint-text">Type the Tamil word and press Enter or Check<br><span style="color:#F57C00;">Yellow highlighted words</span> are new vocabulary to learn!</div>
+        <div class="hint-text">Type the missing Tamil word and press Enter or Check<br>50 natural children's book sentences to practice!</div>
         <div class="nav-buttons" style="margin-top:15px;">
             <button class="btn" onclick="checkFillAnswer()">Check Answer</button>
             <button class="btn" onclick="revealFillAnswer()" style="background: #FF9800;">Reveal Answer</button>
@@ -1300,46 +1300,29 @@
         document.getElementById("fill-feedback").innerText = "";
         document.getElementById("fill-feedback").className = "fill-feedback";
 
-        // Pick a random word from current list
-        const randomWord = currentList[Math.floor(Math.random() * currentList.length)];
-        currentFillWord = randomWord;
+        // Pick a random sentence from sentencePairs
+        const randomSentence = sentencePairs[Math.floor(Math.random() * sentencePairs.length)];
+        currentFillTemplate = randomSentence;
 
-        // Find templates that match this word's category and are not excluded
-        const matchingTemplates = sentenceTemplates.filter(template => {
-            // Check if category matches
-            const categoryMatches = template.categories.some(cat => randomWord.cat.includes(cat));
-            // Check if word is excluded (use enClean for verb conjugations)
-            const wordToCheck = randomWord.enClean || randomWord.en;
-            const isExcluded = template.exclude && template.exclude.includes(wordToCheck);
-            return categoryMatches && !isExcluded;
-        });
+        // Pick a random blank from this sentence
+        const randomBlank = randomSentence.blanks[Math.floor(Math.random() * randomSentence.blanks.length)];
+        currentFillWord = { ta: randomBlank, hint: randomSentence.hint };
 
-        // Fallback to general templates if no match
-        const availableTemplates = matchingTemplates.length > 0
-            ? matchingTemplates
-            : sentenceTemplates.filter(t => {
-                const categoryMatches = t.categories.includes("Time") || t.categories.includes("Noun");
-                const wordToCheck = randomWord.enClean || randomWord.en;
-                const isExcluded = t.exclude && t.exclude.includes(wordToCheck);
-                return categoryMatches && !isExcluded;
-            });
-
-        currentFillTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
-        
         // Create the sentence with a blank input
-        const tamilSentence = currentFillTemplate.tamil.replace(
-            '{word}',
-            '<input type="text" class="blank-input" id="fill-input" autocomplete="off" />'
+        const tamilSentence = randomSentence.tamil.replace(
+            randomBlank,
+            '<input type="text" class="blank-input" id="fill-input" autocomplete="off" style="min-width: ' + (randomBlank.length * 12 + 20) + 'px;" />'
         );
-        
-        const englishSentence = currentFillTemplate.english.replace(
-            '{word}',
-            `<strong>${randomWord.en}</strong>`
+
+        // Show the English sentence with a blank placeholder
+        const englishWithBlank = randomSentence.english.replace(
+            new RegExp(randomBlank.replace(/-/g, '').replace(/\s+/g, '\\s*'), 'gi'),
+            '<strong>________</strong>'
         );
-        
+
         document.getElementById("fill-sentence-tamil").innerHTML = tamilSentence;
-        document.getElementById("fill-sentence-english").innerHTML = englishSentence;
-        
+        document.getElementById("fill-sentence-english").innerHTML = randomSentence.english;
+
         // Focus on input after a short delay
         setTimeout(() => {
             currentFillInput = document.getElementById("fill-input");
@@ -1359,7 +1342,7 @@
         return text.toLowerCase()
             .trim()
             .replace(/\s+/g, ' ')  // Normalize multiple spaces to single space
-            .replace(/[?!.,;:\-_\/\\()\[\]{}'"]/g, '')  // Remove special characters and punctuation
+            .replace(/[?!.,;:_\\()\[\]{}'"]/g, '')  // Remove special characters (but keep hyphens for case markers like -la, -ku)
             .replace(/\u200B/g, '');  // Remove zero-width spaces
     }
 
@@ -1367,21 +1350,10 @@
         if (!currentFillInput || !currentFillWord) return;
 
         const userAnswer = normalizeAnswer(currentFillInput.value);
+        const correctAnswer = normalizeAnswer(currentFillWord.ta);
         const feedback = document.getElementById("fill-feedback");
 
-        // Check if the correct answer has "/" (meaning either alternative is acceptable)
-        let isCorrect = false;
-        if (currentFillWord.ta.includes('/')) {
-            // Split by "/" and check if user answer matches any alternative
-            const alternatives = currentFillWord.ta.split('/').map(alt => normalizeAnswer(alt.trim()));
-            isCorrect = alternatives.some(alt => userAnswer === alt);
-        } else {
-            // Normal comparison
-            const correctAnswer = normalizeAnswer(currentFillWord.ta);
-            isCorrect = userAnswer === correctAnswer;
-        }
-
-        if (isCorrect) {
+        if (userAnswer === correctAnswer) {
             currentFillInput.className = "blank-input correct";
             currentFillInput.disabled = true;
             fillScore++;
@@ -1395,7 +1367,7 @@
             }, 2000);
         } else {
             currentFillInput.className = "blank-input wrong";
-            feedback.innerHTML = `✗ Try again! (Hint: ${currentFillWord.pron || currentFillWord.ta})`;
+            feedback.innerHTML = `✗ Try again! (Hint: ${currentFillWord.hint})`;
             feedback.className = "fill-feedback wrong";
 
             // Allow retry
