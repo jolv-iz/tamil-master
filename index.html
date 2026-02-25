@@ -646,6 +646,7 @@
         <div class="hint-text">Type the Tamil word and press Enter or Check<br><span style="color:#F57C00;">Yellow highlighted words</span> are new vocabulary to learn!</div>
         <div class="nav-buttons" style="margin-top:15px;">
             <button class="btn" onclick="checkFillAnswer()">Check Answer</button>
+            <button class="btn" onclick="revealFillAnswer()" style="background: #FF9800;">Reveal Answer</button>
             <button class="btn" onclick="skipFillQuestion()">Skip →</button>
         </div>
     </div>
@@ -1362,20 +1363,30 @@
 
     function checkFillAnswer() {
         if (!currentFillInput || !currentFillWord) return;
-        
+
         const userAnswer = normalizeAnswer(currentFillInput.value);
-        const correctAnswer = normalizeAnswer(currentFillWord.ta);
-        
         const feedback = document.getElementById("fill-feedback");
-        
-        if (userAnswer === correctAnswer) {
+
+        // Check if the correct answer has "/" (meaning either alternative is acceptable)
+        let isCorrect = false;
+        if (currentFillWord.ta.includes('/')) {
+            // Split by "/" and check if user answer matches any alternative
+            const alternatives = currentFillWord.ta.split('/').map(alt => normalizeAnswer(alt.trim()));
+            isCorrect = alternatives.some(alt => userAnswer === alt);
+        } else {
+            // Normal comparison
+            const correctAnswer = normalizeAnswer(currentFillWord.ta);
+            isCorrect = userAnswer === correctAnswer;
+        }
+
+        if (isCorrect) {
             currentFillInput.className = "blank-input correct";
             currentFillInput.disabled = true;
             fillScore++;
             document.getElementById("fill-score").innerText = fillScore;
             feedback.innerHTML = `✓ Correct! ${currentFillWord.ta}`;
             feedback.className = "fill-feedback correct";
-            
+
             // Auto-advance after 2 seconds
             setTimeout(() => {
                 generateFillSentence();
@@ -1384,7 +1395,7 @@
             currentFillInput.className = "blank-input wrong";
             feedback.innerHTML = `✗ Try again! (Hint: ${currentFillWord.pron || currentFillWord.ta})`;
             feedback.className = "fill-feedback wrong";
-            
+
             // Allow retry
             setTimeout(() => {
                 currentFillInput.value = "";
@@ -1396,11 +1407,33 @@
         }
     }
 
+    function revealFillAnswer() {
+        if (!currentFillInput || !currentFillWord) return;
+
+        // Fill in the correct answer
+        currentFillInput.value = currentFillWord.ta;
+        currentFillInput.className = "blank-input";
+        currentFillInput.style.background = "#FFE0B2";
+        currentFillInput.style.color = "#E65100";
+        currentFillInput.disabled = true;
+
+        // Show feedback
+        const feedback = document.getElementById("fill-feedback");
+        feedback.innerHTML = `💡 Answer revealed: <strong>${currentFillWord.ta}</strong>`;
+        feedback.className = "fill-feedback";
+        feedback.style.color = "#FF9800";
+
+        // Auto-advance after 2 seconds
+        setTimeout(() => {
+            generateFillSentence();
+        }, 2000);
+    }
+
     function skipFillQuestion() {
         const feedback = document.getElementById("fill-feedback");
         feedback.innerHTML = `The answer was: <strong>${currentFillWord.ta}</strong>`;
         feedback.className = "fill-feedback";
-        
+
         setTimeout(() => {
             generateFillSentence();
         }, 1500);
