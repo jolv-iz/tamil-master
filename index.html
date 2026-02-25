@@ -1314,14 +1314,33 @@
             '<input type="text" class="blank-input" id="fill-input" autocomplete="off" style="min-width: ' + (randomBlank.length * 12 + 20) + 'px;" />'
         );
 
-        // Show the English sentence with a blank placeholder
-        const englishWithBlank = randomSentence.english.replace(
-            new RegExp(randomBlank.replace(/-/g, '').replace(/\s+/g, '\\s*'), 'gi'),
-            '<strong>________</strong>'
-        );
+        // Format English sentence: bold the blank word, highlight new vocab
+        let formattedEnglish = randomSentence.english;
 
-        document.getElementById("fill-sentence-tamil").innerHTML = tamilSentence;
-        document.getElementById("fill-sentence-english").innerHTML = randomSentence.english;
+        // 1. Bold the English word corresponding to the Tamil blank
+        if (randomSentence.blankEnglish && randomSentence.blankEnglish[randomBlank]) {
+            const englishBlank = randomSentence.blankEnglish[randomBlank];
+            formattedEnglish = formattedEnglish.replace(
+                new RegExp('\\b' + englishBlank.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'),
+                '<strong>$&</strong>'
+            );
+        }
+
+        // 2. Highlight new vocabulary words in Tamil sentence (yellow)
+        let formattedTamil = tamilSentence;
+        if (randomSentence.highlight && randomSentence.highlight.length > 0) {
+            randomSentence.highlight.forEach(word => {
+                if (word !== randomBlank) { // Don't highlight the blank itself
+                    formattedTamil = formattedTamil.replace(
+                        new RegExp('\\b' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'),
+                        '<mark>$&</mark>'
+                    );
+                }
+            });
+        }
+
+        document.getElementById("fill-sentence-tamil").innerHTML = formattedTamil;
+        document.getElementById("fill-sentence-english").innerHTML = formattedEnglish;
 
         // Focus on input after a short delay
         setTimeout(() => {

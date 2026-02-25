@@ -286,7 +286,9 @@ const sentencePairs = [
         english: "Good morning, how are you?",
         tamil: "Kaalai vanakkam, neenga eppadi irukeenga?",
         blanks: ["Kaalai vanakkam"],
+        blankEnglish: {"Kaalai vanakkam": "Good morning"},
         hint: "Kaa-lai va-nak-kam",
+        highlight: ["eppadi", "irukeenga"],
         difficulty: "easy"
     },
     {
@@ -294,7 +296,9 @@ const sentencePairs = [
         english: "I woke up in the morning",
         tamil: "Naan kaalai-la elundhiruchen",
         blanks: ["kaalai-la"],
+        blankEnglish: {"kaalai-la": "in the morning"},
         hint: "morning + in (la suffix)",
+        highlight: ["elundhiruchen"],
         difficulty: "easy"
     },
     {
@@ -302,7 +306,9 @@ const sentencePairs = [
         english: "Grandma cooked breakfast",
         tamil: "Paati kaalai saapadu samaichchanga",
         blanks: ["kaalai saapadu"],
+        blankEnglish: {"kaalai saapadu": "breakfast"},
         hint: "Kaa-lai saa-pa-du",
+        highlight: ["samaichchanga"],
         difficulty: "easy"
     },
     {
@@ -310,7 +316,9 @@ const sentencePairs = [
         english: "I drink milk in the morning",
         tamil: "Naan kaalai-la paal kudikuren",
         blanks: ["paal"],
+        blankEnglish: {"paal": "milk"},
         hint: "milk",
+        highlight: ["kudikuren"],
         difficulty: "easy"
     },
     {
@@ -318,7 +326,9 @@ const sentencePairs = [
         english: "Good night, see you tomorrow",
         tamil: "Rathiri vanakkam, naalaiku paakalam",
         blanks: ["Rathiri vanakkam"],
+        blankEnglish: {"Rathiri vanakkam": "Good night"},
         hint: "Raa-thri va-nak-kam",
+        highlight: ["paakalam"],
         difficulty: "easy"
     },
     {
@@ -326,7 +336,9 @@ const sentencePairs = [
         english: "Today is a good day",
         tamil: "Inaiku nalla naal",
         blanks: ["Inaiku"],
+        blankEnglish: {"Inaiku": "Today"},
         hint: "today",
+        highlight: ["naal"],
         difficulty: "easy"
     },
     {
@@ -334,7 +346,9 @@ const sentencePairs = [
         english: "I am going home now",
         tamil: "Naan ippo veetuku poren",
         blanks: ["veetuku"],
+        blankEnglish: {"veetuku": "home"},
         hint: "veetu + ku (to suffix)",
+        highlight: ["poren"],
         difficulty: "easy"
     },
     {
@@ -342,7 +356,9 @@ const sentencePairs = [
         english: "My name is good",
         tamil: "En peru nalladu",
         blanks: ["peru"],
+        blankEnglish: {"peru": "name"},
         hint: "name/person",
+        highlight: ["nalladu"],
         difficulty: "easy"
     },
     {
@@ -350,7 +366,9 @@ const sentencePairs = [
         english: "Where is the house?",
         tamil: "Veedu yenga iruku?",
         blanks: ["yenga"],
+        blankEnglish: {"yenga": "Where"},
         hint: "where",
+        highlight: ["iruku"],
         difficulty: "easy"
     },
     {
@@ -358,7 +376,9 @@ const sentencePairs = [
         english: "Yes, I like it very much",
         tamil: "Aama, enaku romba pudikum",
         blanks: ["Aama"],
+        blankEnglish: {"Aama": "Yes"},
         hint: "yes",
+        highlight: ["enaku", "pudikum"],
         difficulty: "easy"
     },
 
@@ -368,7 +388,9 @@ const sentencePairs = [
         english: "My father is at home",
         tamil: "En appa veetla irukaru",
         blanks: ["appa"],
+        blankEnglish: {"appa": "father"},
         hint: "father",
+        highlight: ["veetla", "irukaru"],
         difficulty: "easy"
     },
     {
@@ -376,7 +398,9 @@ const sentencePairs = [
         english: "Mother is cooking food",
         tamil: "Amma saapadu samaikuranga",
         blanks: ["Amma"],
+        blankEnglish: {"Amma": "Mother"},
         hint: "mother",
+        highlight: ["saapadu", "samaikuranga"],
         difficulty: "easy"
     },
     {
@@ -384,7 +408,9 @@ const sentencePairs = [
         english: "Grandma tells me stories",
         tamil: "Paati enaku kadhai solluvaanga",
         blanks: ["Paati"],
+        blankEnglish: {"Paati": "Grandma"},
         hint: "grandmother",
+        highlight: ["kadhai", "solluvaanga"],
         difficulty: "easy"
     },
     {
@@ -392,7 +418,9 @@ const sentencePairs = [
         english: "I play with my older brother",
         tamil: "Naan en anna kuda vilayaaduren",
         blanks: ["anna"],
+        blankEnglish: {"anna": "older brother"},
         hint: "older brother",
+        highlight: ["kuda", "vilayaaduren"],
         difficulty: "easy"
     },
     {
@@ -400,7 +428,9 @@ const sentencePairs = [
         english: "My older sister is very beautiful",
         tamil: "En akka romba azhaga irukanga",
         blanks: ["akka"],
+        blankEnglish: {"akka": "older sister"},
         hint: "older sister",
+        highlight: ["azhaga", "irukanga"],
         difficulty: "easy"
     },
     {
@@ -408,7 +438,9 @@ const sentencePairs = [
         english: "Younger brother came to the house",
         tamil: "Thumbi veetuku vandhaan",
         blanks: ["Thumbi"],
+        blankEnglish: {"Thumbi": "Younger brother"},
         hint: "younger brother",
+        highlight: ["veetuku", "vandhaan"],
         difficulty: "medium"
     },
     {
@@ -416,7 +448,9 @@ const sentencePairs = [
         english: "Uncle is a good person",
         tamil: "Mama nalla per",
         blanks: ["Mama"],
+        blankEnglish: {"Mama": "Uncle"},
         hint: "uncle",
+        highlight: ["nalla", "per"],
         difficulty: "easy"
     },
     {
@@ -424,7 +458,9 @@ const sentencePairs = [
         english: "My house is very big",
         tamil: "En veedu romba periya",
         blanks: ["En"],
+        blankEnglish: {"En": "My"},
         hint: "my",
+        highlight: ["veedu", "periya"],
         difficulty: "easy"
     },
     {
@@ -432,7 +468,9 @@ const sentencePairs = [
         english: "Your house is here, my house is there",
         tamil: "Unga veedu inga, en veedu anga",
         blanks: ["Unga"],
+        blankEnglish: {"Unga": "Your"},
         hint: "your",
+        highlight: ["veedu", "inga", "anga"],
         difficulty: "easy"
     },
     {
@@ -440,7 +478,9 @@ const sentencePairs = [
         english: "Our family is happy",
         tamil: "Namma kudumbam sandhoshamaa iruku",
         blanks: ["Namma"],
+        blankEnglish: {"Namma": "Our"},
         hint: "our (inclusive)",
+        highlight: ["kudumbam", "sandhoshamaa"],
         difficulty: "medium"
     },
 
@@ -450,7 +490,9 @@ const sentencePairs = [
         english: "The book is on the table",
         tamil: "Pusthagam meja maela iruku",
         blanks: ["maela"],
+        blankEnglish: {"maela": "on"},
         hint: "on/above",
+        highlight: ["Pusthagam", "meja"],
         difficulty: "medium"
     },
     {
@@ -458,7 +500,9 @@ const sentencePairs = [
         english: "The cat is under the bed",
         tamil: "Poonai kattil keezha iruku",
         blanks: ["keezha"],
+        blankEnglish: {"keezha": "under"},
         hint: "under/below",
+        highlight: ["Poonai", "kattil"],
         difficulty: "medium"
     },
     {
@@ -466,7 +510,9 @@ const sentencePairs = [
         english: "I am standing in front of the house",
         tamil: "Naan veedu munnadi ninnutruken",
         blanks: ["munnadi"],
+        blankEnglish: {"munnadi": "in front of"},
         hint: "in front",
+        highlight: ["ninnutruken"],
         difficulty: "medium"
     },
     {
@@ -474,7 +520,9 @@ const sentencePairs = [
         english: "The garden is behind the house",
         tamil: "Thotham veedu pinnadi iruku",
         blanks: ["pinnadi"],
+        blankEnglish: {"pinnadi": "behind"},
         hint: "behind",
+        highlight: ["Thotham", "veedu"],
         difficulty: "medium"
     },
     {
@@ -482,7 +530,9 @@ const sentencePairs = [
         english: "Come here, don't go there",
         tamil: "Inga vaa, anga pogaadhe",
         blanks: ["inga"],
+        blankEnglish: {"inga": "here"},
         hint: "here",
+        highlight: ["vaa", "pogaadhe"],
         difficulty: "medium"
     },
     {
@@ -490,7 +540,9 @@ const sentencePairs = [
         english: "I am inside the house",
         tamil: "Naan veedu ulla iruken",
         blanks: ["ulla"],
+        blankEnglish: {"ulla": "inside"},
         hint: "inside",
+        highlight: ["veedu", "iruken"],
         difficulty: "medium"
     },
     {
@@ -498,7 +550,9 @@ const sentencePairs = [
         english: "The children are playing outside",
         tamil: "Pasanga veliya vilayaadranga",
         blanks: ["veliya"],
+        blankEnglish: {"veliya": "outside"},
         hint: "outside",
+        highlight: ["Pasanga", "vilayaadranga"],
         difficulty: "medium"
     },
     {
@@ -506,7 +560,9 @@ const sentencePairs = [
         english: "This is small, that is big",
         tamil: "Idhu chinna, adhu periya",
         blanks: ["chinna"],
+        blankEnglish: {"chinna": "small"},
         hint: "small",
+        highlight: ["periya"],
         difficulty: "medium"
     },
     {
@@ -514,7 +570,9 @@ const sentencePairs = [
         english: "I want a little food, not too much",
         tamil: "Enaku konjam saapadu venum, romba vendam",
         blanks: ["konjam"],
+        blankEnglish: {"konjam": "a little"},
         hint: "a little",
+        highlight: ["venum", "vendam"],
         difficulty: "medium"
     },
     {
@@ -522,7 +580,9 @@ const sentencePairs = [
         english: "There are many people here",
         tamil: "Inga neraiya per irukanga",
         blanks: ["neraiya"],
+        blankEnglish: {"neraiya": "many"},
         hint: "many/a lot",
+        highlight: ["per", "irukanga"],
         difficulty: "medium"
     },
 
@@ -532,7 +592,9 @@ const sentencePairs = [
         english: "I ate food yesterday",
         tamil: "Naan nethu saapadu saapten",
         blanks: ["nethu"],
+        blankEnglish: {"nethu": "yesterday"},
         hint: "yesterday",
+        highlight: ["saapadu", "saapten"],
         difficulty: "medium"
     },
     {
@@ -540,7 +602,9 @@ const sentencePairs = [
         english: "Tomorrow I will go to school",
         tamil: "Naalaiku naan schoolku poven",
         blanks: ["Naalaiku"],
+        blankEnglish: {"Naalaiku": "Tomorrow"},
         hint: "tomorrow",
+        highlight: ["schoolku", "poven"],
         difficulty: "medium"
     },
     {
@@ -548,7 +612,9 @@ const sentencePairs = [
         english: "I saw mother yesterday",
         tamil: "Naan nethu amma-va paarthen",
         blanks: ["nethu"],
+        blankEnglish: {"nethu": "yesterday"},
         hint: "yesterday",
+        highlight: ["amma-va", "paarthen"],
         difficulty: "medium"
     },
     {
@@ -556,7 +622,9 @@ const sentencePairs = [
         english: "We worked hard last week",
         tamil: "Naanga ponna vaaram kashtappattom",
         blanks: ["ponna vaaram"],
+        blankEnglish: {"ponna vaaram": "last week"},
         hint: "last week",
+        highlight: ["kashtappattom"],
         difficulty: "medium"
     },
     {
@@ -564,7 +632,9 @@ const sentencePairs = [
         english: "I will sleep at 9 o'clock",
         tamil: "Naan onbathu mani neramukku thoonguven",
         blanks: ["onbathu"],
+        blankEnglish: {"onbathu": "nine"},
         hint: "nine (9)",
+        highlight: ["mani", "thoonguven"],
         difficulty: "medium"
     },
     {
@@ -572,7 +642,9 @@ const sentencePairs = [
         english: "In the month of January it's cold",
         tamil: "January maasam-la kuliraa irukum",
         blanks: ["maasam-la"],
+        blankEnglish: {"maasam-la": "in the month"},
         hint: "month + in (la suffix)",
+        highlight: ["kuliraa", "irukum"],
         difficulty: "medium"
     },
     {
@@ -580,7 +652,9 @@ const sentencePairs = [
         english: "One day, a bird came",
         tamil: "Oru naal, oru kuruvi vandhudhu",
         blanks: ["Oru naal"],
+        blankEnglish: {"Oru naal": "One day"},
         hint: "one day",
+        highlight: ["kuruvi", "vandhudhu"],
         difficulty: "medium"
     },
     {
@@ -588,7 +662,9 @@ const sentencePairs = [
         english: "Now I understand, before I didn't know",
         tamil: "Ippo enaku puriyuthu, munnaadi theriyala",
         blanks: ["Ippo"],
+        blankEnglish: {"Ippo": "Now"},
         hint: "now",
+        highlight: ["puriyuthu", "theriyala"],
         difficulty: "medium"
     },
 
@@ -598,7 +674,9 @@ const sentencePairs = [
         english: "This food is very sweet",
         tamil: "Indha saapadu romba inipu",
         blanks: ["inipu"],
+        blankEnglish: {"inipu": "sweet"},
         hint: "sweet",
+        highlight: ["saapadu"],
         difficulty: "medium"
     },
     {
@@ -606,7 +684,9 @@ const sentencePairs = [
         english: "The curry is very spicy",
         tamil: "Kuzhambu romba kaaram",
         blanks: ["kaaram"],
+        blankEnglish: {"kaaram": "spicy"},
         hint: "spicy",
+        highlight: ["Kuzhambu"],
         difficulty: "medium"
     },
     {
@@ -614,7 +694,9 @@ const sentencePairs = [
         english: "I like sour taste",
         tamil: "Enaku pulipu pudikum",
         blanks: ["pulipu"],
+        blankEnglish: {"pulipu": "sour"},
         hint: "sour",
+        highlight: ["pudikum"],
         difficulty: "medium"
     },
     {
@@ -622,7 +704,9 @@ const sentencePairs = [
         english: "This is old, that is new",
         tamil: "Idhu palaya, adhu pudhusu",
         blanks: ["palaya"],
+        blankEnglish: {"palaya": "old"},
         hint: "old",
+        highlight: ["pudhusu"],
         difficulty: "medium"
     },
     {
@@ -630,7 +714,9 @@ const sentencePairs = [
         english: "That is correct, this is wrong",
         tamil: "Adhu sari, idhu thappu",
         blanks: ["sari"],
+        blankEnglish: {"sari": "correct"},
         hint: "correct/right",
+        highlight: ["thappu"],
         difficulty: "medium"
     },
     {
@@ -638,7 +724,9 @@ const sentencePairs = [
         english: "Tell the truth, don't tell lies",
         tamil: "Unmai sollu, poi sollaaadhe",
         blanks: ["Unmai"],
+        blankEnglish: {"Unmai": "truth"},
         hint: "truth",
+        highlight: ["sollu", "poi", "sollaaadhe"],
         difficulty: "hard"
     },
     {
@@ -646,7 +734,9 @@ const sentencePairs = [
         english: "I am hungry, please give me food",
         tamil: "Enaku pasikkuthu, please saapadu kudunga",
         blanks: ["pasikkuthu"],
+        blankEnglish: {"pasikkuthu": "hungry"},
         hint: "hungry (to me)",
+        highlight: ["kudunga"],
         difficulty: "hard"
     },
     {
@@ -654,7 +744,9 @@ const sentencePairs = [
         english: "This is enough, I don't want more",
         tamil: "Idhu podhum, enaku adhigam vendam",
         blanks: ["podhum"],
+        blankEnglish: {"podhum": "enough"},
         hint: "enough",
+        highlight: ["adhigam", "vendam"],
         difficulty: "hard"
     },
 
@@ -664,7 +756,9 @@ const sentencePairs = [
         english: "Who is that person?",
         tamil: "Andha per yaaru?",
         blanks: ["yaaru"],
+        blankEnglish: {"yaaru": "Who"},
         hint: "who",
+        highlight: ["per"],
         difficulty: "hard"
     },
     {
@@ -672,7 +766,9 @@ const sentencePairs = [
         english: "Why did this happen?",
         tamil: "Idhu yaen aayiduchu?",
         blanks: ["yaen"],
+        blankEnglish: {"yaen": "Why"},
         hint: "why",
+        highlight: ["aayiduchu"],
         difficulty: "hard"
     },
     {
@@ -680,7 +776,9 @@ const sentencePairs = [
         english: "How do you do this?",
         tamil: "Neenga idha eppadi seiringa?",
         blanks: ["eppadi"],
+        blankEnglish: {"eppadi": "How"},
         hint: "how",
+        highlight: ["seiringa"],
         difficulty: "hard"
     },
     {
@@ -688,7 +786,9 @@ const sentencePairs = [
         english: "Do you understand? Yes, I understand",
         tamil: "Ungaluku puriyutha? Aama, enaku puriyuthu",
         blanks: ["puriyuthu"],
+        blankEnglish: {"puriyuthu": "understand"},
         hint: "understand (to me)",
+        highlight: ["Ungaluku", "puriyutha"],
         difficulty: "hard"
     }
 ];
