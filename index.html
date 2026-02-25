@@ -1308,8 +1308,9 @@
         const matchingTemplates = sentenceTemplates.filter(template => {
             // Check if category matches
             const categoryMatches = template.categories.some(cat => randomWord.cat.includes(cat));
-            // Check if word is excluded
-            const isExcluded = template.exclude && template.exclude.includes(randomWord.en);
+            // Check if word is excluded (use enClean for verb conjugations)
+            const wordToCheck = randomWord.enClean || randomWord.en;
+            const isExcluded = template.exclude && template.exclude.includes(wordToCheck);
             return categoryMatches && !isExcluded;
         });
 
@@ -1318,7 +1319,8 @@
             ? matchingTemplates
             : sentenceTemplates.filter(t => {
                 const categoryMatches = t.categories.includes("Time") || t.categories.includes("Noun");
-                const isExcluded = t.exclude && t.exclude.includes(randomWord.en);
+                const wordToCheck = randomWord.enClean || randomWord.en;
+                const isExcluded = t.exclude && t.exclude.includes(wordToCheck);
                 return categoryMatches && !isExcluded;
             });
 
