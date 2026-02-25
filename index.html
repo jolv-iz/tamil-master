@@ -43,6 +43,7 @@
             text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 10;
+            position: relative;
         }
 
         h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
@@ -480,6 +481,11 @@
 
 <header>
     <h1 onclick="handleTitleTap()" style="cursor:default; user-select:none;">Tamil Master</h1>
+    <button id="admin-btn" onclick="openAdmin()" title="Add words" style="
+        position:absolute; top:50%; right:12px; transform:translateY(-50%);
+        background:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.5);
+        color:white; border-radius:8px; padding:5px 9px; font-size:0.85rem;
+        cursor:pointer; line-height:1;">&#43;</button>
 </header>
 
 <div class="controls">
@@ -1342,7 +1348,7 @@
     function handleTitleTap() {
         adminTapCount++;
         if (adminTapTimer) clearTimeout(adminTapTimer);
-        if (adminTapCount >= 5) {
+        if (adminTapCount >= 3) {
             adminTapCount = 0;
             openAdmin();
         } else {
