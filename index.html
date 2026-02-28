@@ -529,6 +529,67 @@
             font-style: italic;
             margin-top: -5px;
         }
+
+        /* --- IMPORT SENTENCES PANEL --- */
+        #import-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 10px 0;
+            box-sizing: border-box;
+        }
+        #import-panel {
+            background: white;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 480px;
+            box-sizing: border-box;
+        }
+        #import-panel h2 { margin: 0 0 4px 0; font-size: 1.1rem; color: var(--primary); }
+        .import-hint { margin: 0 0 10px 0; font-size: 0.8rem; color: #888; line-height: 1.5; }
+        .import-hint b { color: #555; }
+        #import-text {
+            width: 100%; height: 180px; padding: 10px;
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 0.85rem; box-sizing: border-box;
+            font-family: inherit; resize: vertical; line-height: 1.4;
+        }
+        #import-text:focus { outline: none; border-color: var(--primary); }
+        .import-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-import-do {
+            background: var(--primary); color: white; border: none;
+            padding: 10px 16px; border-radius: 8px; font-size: 0.9rem;
+            cursor: pointer; font-weight: bold; flex: 1;
+        }
+        .btn-import-cancel {
+            background: #eee; color: #555; border: none;
+            padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+        }
+        .import-msg { padding: 8px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; min-height: 20px; margin-top: 10px; }
+        .import-msg.success { background: #e8f5e9; color: var(--success); }
+        .import-msg.error { background: #ffebee; color: var(--error); }
+        .import-sentence-list { margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px; max-height: 220px; overflow-y: auto; }
+        .import-sentence-list h3 { margin: 0 0 8px 0; font-size: 0.85rem; color: #777; }
+        .import-sentence-item { display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; gap: 8px; }
+        .import-sentence-text { flex: 1; font-size: 0.8rem; }
+        .import-sentence-en { color: #555; }
+        .import-sentence-ta { color: var(--primary); font-weight: bold; }
+        .import-sentence-blanks { color: #999; font-size: 0.75rem; font-style: italic; }
+        .btn-import-delete {
+            background: none; border: 1px solid #ddd; color: #bbb;
+            padding: 3px 7px; border-radius: 5px; font-size: 0.75rem; cursor: pointer; flex-shrink: 0;
+        }
+        .btn-import-delete:hover { border-color: var(--error); color: var(--error); }
+        #fill-source-badge {
+            font-size: 0.72rem; color: #777; text-align: center;
+            background: #f0f4ff; border-radius: 10px; padding: 2px 10px;
+            margin-bottom: 2px; display: none;
+        }
     </style>
 </head>
 <body>
@@ -638,16 +699,20 @@
 
     <div id="area-fill" class="fill-container">
         <div class="score-board">Score: <span id="fill-score">0</span></div>
+        <div id="fill-source-badge"><span id="fill-source-text"></span></div>
         <div class="sentence-display">
             <div class="sentence-tamil" id="fill-sentence-tamil"></div>
             <div class="sentence-english" id="fill-sentence-english"></div>
         </div>
         <div class="fill-feedback" id="fill-feedback"></div>
-        <div class="hint-text">Type the missing Tamil word and press Enter or Check<br>50 natural children's book sentences to practice!</div>
+        <div class="hint-text" id="fill-hint-text">Type the missing Tamil word and press Enter or Check</div>
         <div class="nav-buttons" style="margin-top:15px;">
             <button class="btn" onclick="checkFillAnswer()">Check Answer</button>
             <button class="btn" onclick="revealFillAnswer()" style="background: #FF9800;">Reveal Answer</button>
             <button class="btn" onclick="skipFillQuestion()">Skip →</button>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+            <button onclick="openImportPanel()" style="background:none; border:1px solid #ccc; color:#888; border-radius:8px; padding:6px 16px; font-size:0.8rem; cursor:pointer;">+ Import from Google Sheets / Doc</button>
         </div>
     </div>
 
@@ -1059,6 +1124,8 @@
         populateCategories();
         loadStats();
         loadMemory();
+        loadSentenceStats();
+        loadTeacherSentences();
         shuffleCards(); // Shuffle words randomly on initial load
         loadCard();
         updateMemoryStats();
@@ -1292,144 +1359,640 @@
 
     // --- FILL IN THE BLANK LOGIC ---
     let fillScore = 0;
-    let currentFillWord = null;
-    let currentFillTemplate = null;
-    let currentFillInput = null;
+    let currentFillWord = null;       // first blank (kept for compatibility)
+    let currentFillTemplate = null;   // current sentence object
+    let currentFillInput = null;      // first input element (kept for compatibility)
+    let currentFillBlanks = [];       // [{ta, hint, en}] — one entry per blank
+    let currentFillInputs = [];       // DOM input elements, parallel to currentFillBlanks
+
+    // --- SENTENCE STATS: sentences revealed/wrong appear more often ---
+    let sentenceStats = {};  // String(sentence.id) → {wrongCount, revealCount, correctCount}
+
+    function loadSentenceStats() {
+        const saved = localStorage.getItem('tamilSentenceStats');
+        if (saved) sentenceStats = JSON.parse(saved);
+    }
+
+    function saveSentenceStats() {
+        localStorage.setItem('tamilSentenceStats', JSON.stringify(sentenceStats));
+    }
+
+    function recordSentenceStat(sentenceId, type) {
+        const key = String(sentenceId);
+        if (!sentenceStats[key]) sentenceStats[key] = { wrongCount: 0, revealCount: 0, correctCount: 0 };
+        sentenceStats[key][type + 'Count']++;
+        saveSentenceStats();
+    }
+
+    function getSentenceWeight(sentenceId) {
+        const s = sentenceStats[String(sentenceId)] || { wrongCount: 0, revealCount: 0, correctCount: 0 };
+        let w = 1 + s.revealCount * 2 + s.wrongCount * 0.5;
+        w /= Math.max(1, s.correctCount);
+        return Math.max(0.25, w);
+    }
+
+    function weightedRandomSentence(pool) {
+        if (!pool.length) return null;
+        const weights = pool.map(s => getSentenceWeight(s.id));
+        const total = weights.reduce((a, b) => a + b, 0);
+        let r = Math.random() * total;
+        for (let i = 0; i < pool.length; i++) { r -= weights[i]; if (r <= 0) return pool[i]; }
+        return pool[pool.length - 1];
+    }
+
+    // --- TEACHER SENTENCES (imported from Google Doc or paste) ---
+    let teacherSentences = [];
+    let teacherNextId = 1;
+
+    function loadTeacherSentences() {
+        const saved = localStorage.getItem('tamilTeacherSentences');
+        if (saved) {
+            teacherSentences = JSON.parse(saved);
+            teacherNextId = teacherSentences.reduce((max, s) => {
+                const n = parseInt(String(s.id).replace('teacher_', ''));
+                return isNaN(n) ? max : Math.max(max, n + 1);
+            }, 1);
+        }
+    }
+
+    function saveTeacherSentences() {
+        localStorage.setItem('tamilTeacherSentences', JSON.stringify(teacherSentences));
+    }
+
+    function findVocabMatch(word) {
+        const norm = word.toLowerCase().replace(/[?!.,;:'"]/g, '').trim();
+        return [...data, ...customWords].find(item => item.ta && item.ta.toLowerCase() === norm);
+    }
+
+    function getWordPronHint(word) {
+        const v = findVocabMatch(word);
+        return (v && v.pron) ? v.pron : word;
+    }
+
+    // Scan Tamil sentence for blank candidates:
+    // - vocab words at memory level 0 or 1 → become blanks
+    // - words not in vocab at all → highlighted in yellow (not blanked)
+    function autoDetectBlanks(tamilSentence) {
+        const blanks = [], blankEnglish = {}, highlight = [];
+        tamilSentence.split(/\s+/).forEach(rawWord => {
+            const clean = rawWord.replace(/[?!.,;:'"]/g, '');
+            if (clean.length < 2) return;
+            const vocab = findVocabMatch(clean);
+            if (vocab) {
+                const mem = wordMemory[vocab.id];
+                if (!mem || mem.level <= 1) { blanks.push(clean); blankEnglish[clean] = vocab.en; }
+            } else {
+                if (clean.length > 2) highlight.push(clean);
+            }
+        });
+        // Fallback: if nothing detected, blank the longest Tamil word
+        if (!blanks.length) {
+            const fb = tamilSentence.split(/\s+/).map(w => w.replace(/[?!.,;:'"]/g, ''))
+                .filter(w => w.length > 2).sort((a, b) => b.length - a.length)[0];
+            if (fb) { blanks.push(fb); blankEnglish[fb] = ''; }
+        }
+        return { blanks, blankEnglish, highlight };
+    }
+
+    function createTeacherSentence(english, tamil, explicitBlanks) {
+        let blanks, blankEnglish, highlight;
+        if (explicitBlanks && explicitBlanks.length) {
+            blanks = explicitBlanks;
+            blankEnglish = {};
+            blanks.forEach(b => { const v = findVocabMatch(b); blankEnglish[b] = v ? v.en : b; });
+            highlight = [];
+        } else {
+            ({ blanks, blankEnglish, highlight } = autoDetectBlanks(tamil));
+        }
+        const hint = blanks.map(b => getWordPronHint(b)).join(' / ');
+        const id = `teacher_${teacherNextId++}`;
+        return { id, source: 'teacher', english, tamil, blanks, blankEnglish, hint, highlight, difficulty: 'medium' };
+    }
 
     function generateFillSentence() {
-        document.getElementById("fill-feedback").innerText = "";
-        document.getElementById("fill-feedback").className = "fill-feedback";
+        const feedback = document.getElementById("fill-feedback");
+        feedback.innerText = ""; feedback.className = "fill-feedback"; feedback.style.color = "";
 
-        // Pick a random sentence from sentencePairs
-        const randomSentence = sentencePairs[Math.floor(Math.random() * sentencePairs.length)];
-        currentFillTemplate = randomSentence;
+        const pool = [...sentencePairs, ...teacherSentences];
+        const sentence = weightedRandomSentence(pool);
+        if (!sentence) return;
+        currentFillTemplate = sentence;
+        const isTeacher = sentence.source === 'teacher';
 
-        // Pick a random blank from this sentence
-        const randomBlank = randomSentence.blanks[Math.floor(Math.random() * randomSentence.blanks.length)];
-        currentFillWord = { ta: randomBlank, hint: randomSentence.hint };
+        // Teacher: blank ALL words at once. Built-in: one random blank.
+        let activeBlanks;
+        if (isTeacher) {
+            activeBlanks = sentence.blanks.map(b => ({
+                ta: b, hint: getWordPronHint(b),
+                en: sentence.blankEnglish ? (sentence.blankEnglish[b] || '') : ''
+            }));
+        } else {
+            const rb = sentence.blanks[Math.floor(Math.random() * sentence.blanks.length)];
+            activeBlanks = [{ ta: rb, hint: sentence.hint,
+                en: sentence.blankEnglish ? (sentence.blankEnglish[rb] || '') : '' }];
+        }
+        currentFillBlanks = activeBlanks;
+        currentFillWord = activeBlanks[0] || null;
 
-        // Create the sentence with a blank input
-        const tamilSentence = randomSentence.tamil.replace(
-            randomBlank,
-            '<input type="text" class="blank-input" id="fill-input" autocomplete="off" style="min-width: ' + (randomBlank.length * 12 + 20) + 'px;" />'
-        );
-
-        // Format English sentence: bold the blank word, highlight new vocab
-        let formattedEnglish = randomSentence.english;
-
-        // 1. Bold the English word corresponding to the Tamil blank
-        if (randomSentence.blankEnglish && randomSentence.blankEnglish[randomBlank]) {
-            const englishBlank = randomSentence.blankEnglish[randomBlank];
-            formattedEnglish = formattedEnglish.replace(
-                new RegExp('\\b' + englishBlank.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'),
-                '<strong>$&</strong>'
-            );
+        // Source badge
+        const badge = document.getElementById("fill-source-badge");
+        if (badge) {
+            if (isTeacher) {
+                document.getElementById("fill-source-text").textContent =
+                    "Teacher sentence — fill in " + activeBlanks.length + (activeBlanks.length === 1 ? " blank" : " blanks");
+                badge.style.display = 'block';
+            } else { badge.style.display = 'none'; }
         }
 
-        // 2. Highlight new vocabulary words in Tamil sentence (yellow)
-        let formattedTamil = tamilSentence;
-        if (randomSentence.highlight && randomSentence.highlight.length > 0) {
-            randomSentence.highlight.forEach(word => {
-                if (word !== randomBlank) { // Don't highlight the blank itself
-                    formattedTamil = formattedTamil.replace(
-                        new RegExp('\\b' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'),
-                        '<mark>$&</mark>'
-                    );
+        // Build Tamil HTML: replace each blank with an <input>
+        let tamilHTML = sentence.tamil;
+        activeBlanks.forEach((blank, i) => {
+            const inp = `<input type="text" class="blank-input" id="fill-input-${i}" autocomplete="off" style="min-width:${blank.ta.length * 12 + 20}px;" />`;
+            if (blank.ta.includes(' ')) {
+                const idx = tamilHTML.toLowerCase().indexOf(blank.ta.toLowerCase());
+                if (idx >= 0) tamilHTML = tamilHTML.slice(0, idx) + inp + tamilHTML.slice(idx + blank.ta.length);
+            } else {
+                const esc = blank.ta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                tamilHTML = tamilHTML.replace(new RegExp('\\b' + esc + '\\b', 'i'), inp);
+            }
+        });
+
+        // Bold English words corresponding to each blank
+        let formattedEnglish = sentence.english;
+        activeBlanks.forEach(blank => {
+            if (blank.en) {
+                const esc = blank.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                formattedEnglish = formattedEnglish.replace(new RegExp('\\b' + esc + '\\b', 'gi'), '<strong>$&</strong>');
+            }
+        });
+
+        // Yellow-highlight new vocab words
+        if (sentence.highlight && sentence.highlight.length) {
+            sentence.highlight.forEach(word => {
+                if (!activeBlanks.some(b => b.ta.toLowerCase() === word.toLowerCase())) {
+                    const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    tamilHTML = tamilHTML.replace(new RegExp('\\b' + esc + '\\b', 'gi'), '<mark>$&</mark>');
                 }
             });
         }
 
-        document.getElementById("fill-sentence-tamil").innerHTML = formattedTamil;
+        document.getElementById("fill-sentence-tamil").innerHTML = tamilHTML;
         document.getElementById("fill-sentence-english").innerHTML = formattedEnglish;
+        const hintEl = document.getElementById("fill-hint-text");
+        if (hintEl) hintEl.textContent = isTeacher
+            ? "Fill in all blanks, then press Check"
+            : "Type the missing Tamil word and press Enter or Check";
 
-        // Focus on input after a short delay
         setTimeout(() => {
-            currentFillInput = document.getElementById("fill-input");
-            if (currentFillInput) {
-                currentFillInput.focus();
-                // Add Enter key listener
-                currentFillInput.onkeypress = function(e) {
-                    if (e.key === 'Enter') {
-                        checkFillAnswer();
-                    }
-                };
-            }
+            currentFillInputs = activeBlanks.map((_, i) => document.getElementById(`fill-input-${i}`));
+            currentFillInput = currentFillInputs[0] || null;
+            currentFillInputs.forEach(inp => { if (inp) inp.onkeypress = e => { if (e.key === 'Enter') checkFillAnswer(); }; });
+            if (currentFillInputs[0]) currentFillInputs[0].focus();
         }, 100);
     }
 
     function normalizeAnswer(text) {
-        return text.toLowerCase()
-            .trim()
-            .replace(/\s+/g, ' ')  // Normalize multiple spaces to single space
-            .replace(/[?!.,;:_\\()\[\]{}'"]/g, '')  // Remove special characters (but keep hyphens for case markers like -la, -ku)
-            .replace(/\u200B/g, '');  // Remove zero-width spaces
+        return text.toLowerCase().trim()
+            .replace(/\s+/g, ' ')
+            .replace(/[?!.,;:_\\()\[\]{}'"]/g, '')
+            .replace(/\u200B/g, '');
     }
 
     function checkFillAnswer() {
-        if (!currentFillInput || !currentFillWord) return;
-
-        const userAnswer = normalizeAnswer(currentFillInput.value);
-        const correctAnswer = normalizeAnswer(currentFillWord.ta);
+        if (!currentFillBlanks.length || !currentFillInputs.length) return;
+        let stillWrong = 0;
+        currentFillInputs.forEach((inp, i) => {
+            if (!inp || inp.disabled) return;
+            if (normalizeAnswer(inp.value) === normalizeAnswer(currentFillBlanks[i].ta)) {
+                inp.className = "blank-input correct"; inp.disabled = true;
+            } else { stillWrong++; inp.className = "blank-input wrong"; }
+        });
+        const allDone = currentFillInputs.every(inp => !inp || inp.disabled);
         const feedback = document.getElementById("fill-feedback");
-
-        if (userAnswer === correctAnswer) {
-            currentFillInput.className = "blank-input correct";
-            currentFillInput.disabled = true;
+        feedback.style.color = "";
+        if (allDone) {
             fillScore++;
             document.getElementById("fill-score").innerText = fillScore;
-            feedback.innerHTML = `✓ Correct! ${currentFillWord.ta}`;
+            feedback.innerHTML = `✓ Correct! ${currentFillBlanks.map(b => b.ta).join(', ')}`;
             feedback.className = "fill-feedback correct";
-
-            // Auto-advance after 2 seconds
-            setTimeout(() => {
-                generateFillSentence();
-            }, 2000);
-        } else {
-            currentFillInput.className = "blank-input wrong";
-            feedback.innerHTML = `✗ Try again! (Hint: ${currentFillWord.hint})`;
+            recordSentenceStat(currentFillTemplate.id, 'correct');
+            setTimeout(() => generateFillSentence(), 2000);
+        } else if (stillWrong > 0) {
+            const hints = currentFillBlanks
+                .filter((_, i) => currentFillInputs[i] && !currentFillInputs[i].disabled)
+                .map(b => b.hint).filter(h => h).join(' / ');
+            feedback.innerHTML = `✗ Try again!${hints ? ' (Hint: ' + hints + ')' : ''}`;
             feedback.className = "fill-feedback wrong";
-
-            // Allow retry
+            recordSentenceStat(currentFillTemplate.id, 'wrong');
             setTimeout(() => {
-                currentFillInput.value = "";
-                currentFillInput.className = "blank-input";
-                currentFillInput.focus();
-                feedback.innerText = "";
-                feedback.className = "fill-feedback";
+                currentFillInputs.forEach(inp => { if (inp && !inp.disabled) { inp.value = ""; inp.className = "blank-input"; } });
+                feedback.innerText = ""; feedback.className = "fill-feedback";
+                const first = currentFillInputs.find(inp => inp && !inp.disabled);
+                if (first) first.focus();
             }, 2000);
         }
     }
 
     function revealFillAnswer() {
-        if (!currentFillInput || !currentFillWord) return;
-
-        // Fill in the correct answer
-        currentFillInput.value = currentFillWord.ta;
-        currentFillInput.className = "blank-input";
-        currentFillInput.style.background = "#FFE0B2";
-        currentFillInput.style.color = "#E65100";
-        currentFillInput.disabled = true;
-
-        // Show feedback
+        if (!currentFillBlanks.length) return;
+        currentFillInputs.forEach((inp, i) => {
+            if (!inp) return;
+            inp.value = currentFillBlanks[i].ta;
+            inp.style.background = "#FFE0B2"; inp.style.color = "#E65100"; inp.disabled = true;
+        });
         const feedback = document.getElementById("fill-feedback");
-        feedback.innerHTML = `💡 Answer revealed: <strong>${currentFillWord.ta}</strong>`;
-        feedback.className = "fill-feedback";
-        feedback.style.color = "#FF9800";
-
-        // Auto-advance after 2 seconds
-        setTimeout(() => {
-            generateFillSentence();
-        }, 2000);
+        feedback.innerHTML = `💡 Answer revealed: <strong>${currentFillBlanks.map(b => b.ta).join(', ')}</strong>`;
+        feedback.className = "fill-feedback"; feedback.style.color = "#FF9800";
+        recordSentenceStat(currentFillTemplate.id, 'reveal');
+        setTimeout(() => generateFillSentence(), 2000);
     }
 
     function skipFillQuestion() {
+        if (!currentFillBlanks.length) return;
         const feedback = document.getElementById("fill-feedback");
-        feedback.innerHTML = `The answer was: <strong>${currentFillWord.ta}</strong>`;
-        feedback.className = "fill-feedback";
+        feedback.innerHTML = `The answer was: <strong>${currentFillBlanks.map(b => b.ta).join(', ')}</strong>`;
+        feedback.className = "fill-feedback"; feedback.style.color = "";
+        setTimeout(() => generateFillSentence(), 1500);
+    }
 
-        setTimeout(() => {
-            generateFillSentence();
-        }, 1500);
+    // --- IMPORT PANEL ---
+    function openImportPanel() {
+        renderImportSentenceList();
+        loadGoogleApiKeyDisplay();
+        document.getElementById('import-overlay').style.display = 'block';
+        document.getElementById('import-msg').textContent = '';
+        document.getElementById('import-msg').className = 'import-msg';
+    }
+
+    function closeImportPanel() { document.getElementById('import-overlay').style.display = 'none'; }
+
+    function handleImportOverlayClick(e) {
+        if (e.target === document.getElementById('import-overlay')) closeImportPanel();
+    }
+
+    // Google Docs API key management
+    function loadGoogleApiKeyDisplay() {
+        const key = localStorage.getItem('tamilGoogleApiKey') || '';
+        const inp = document.getElementById('import-api-key-input');
+        const status = document.getElementById('api-key-status');
+        if (inp) inp.value = key;
+        if (status) status.textContent = key ? 'API key saved.' : 'No API key set.';
+    }
+
+    function saveApiKeyFromInput() {
+        const key = (document.getElementById('import-api-key-input').value || '').trim();
+        localStorage.setItem('tamilGoogleApiKey', key);
+        document.getElementById('api-key-status').textContent = key ? 'API key saved.' : 'API key cleared.';
+    }
+
+    function extractGoogleDocId(url) {
+        const m = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+        return m ? m[1] : null;
+    }
+
+    let currentSheetsId = null;
+
+    function isGoogleSheetsUrl(url) { return url.includes('/spreadsheets/'); }
+
+    function extractGoogleSheetsId(url) {
+        const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+        return m ? m[1] : null;
+    }
+
+    async function doFetchFromUrl() {
+        const url = (document.getElementById('import-url').value || '').trim();
+        const msgEl = document.getElementById('import-msg');
+        if (!url) { msgEl.textContent = 'Please enter a Google Sheets or Doc URL.'; msgEl.className = 'import-msg error'; return; }
+        const apiKey = localStorage.getItem('tamilGoogleApiKey') || '';
+        if (!apiKey) { msgEl.textContent = 'Please save a Google API key in the settings below.'; msgEl.className = 'import-msg error'; return; }
+        document.getElementById('import-sheet-selector').style.display = 'none';
+        if (isGoogleSheetsUrl(url)) {
+            currentImportMode = 'sheets';
+            await fetchSheetsMetadata(url, apiKey);
+        } else {
+            await fetchGoogleDocWithTabs(url, apiKey);
+        }
+    }
+
+    let currentDocTabs = [];   // [{title, content}] from Docs API
+    let currentImportMode = 'sheets'; // 'sheets' | 'docs'
+
+    async function fetchGoogleDocWithTabs(url, apiKey) {
+        const docId = extractGoogleDocId(url);
+        const msgEl = document.getElementById('import-msg');
+        if (!docId) { msgEl.textContent = 'Could not find a document ID in that URL.'; msgEl.className = 'import-msg error'; return; }
+        msgEl.textContent = 'Fetching…'; msgEl.className = 'import-msg';
+        try {
+            const resp = await fetch(`https://docs.googleapis.com/v1/documents/${docId}?key=${encodeURIComponent(apiKey)}&includeTabsContent=true`);
+            if (!resp.ok) {
+                if (resp.status === 403) throw new Error('Access denied — make sure the doc is shared as "Anyone with the link can view"');
+                if (resp.status === 404) throw new Error('Document not found — check the URL');
+                throw new Error(`Google Docs API error ${resp.status}`);
+            }
+            const doc = await resp.json();
+            const tabs = doc.tabs || [];
+
+            if (!tabs.length) {
+                // No tabs — fall back to reading the main body
+                const text = extractDocText(doc.body?.content || []);
+                document.getElementById('import-text').value = text;
+                document.getElementById('import-sheet-selector').style.display = 'none';
+                msgEl.textContent = 'Document fetched (no tabs found). Review the text below and click Import.';
+                msgEl.className = 'import-msg success';
+                return;
+            }
+
+            // Store tabs and show selector
+            currentDocTabs = tabs.map(t => ({
+                title: t.tabProperties?.title || 'Untitled',
+                content: t.documentTab?.body?.content || []
+            }));
+            currentImportMode = 'docs';
+
+            ['vocab-sheet-select', 'sent-sheet-select'].forEach((selId, i) => {
+                const sel = document.getElementById(selId);
+                sel.innerHTML = currentDocTabs.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
+                const preferred = i === 0
+                    ? ['vocab', 'vocabulary', 'words', 'word']
+                    : ['sentence', 'sentences', 'practice'];
+                const match = currentDocTabs.find(t => preferred.some(p => t.title.toLowerCase().includes(p)));
+                if (match) sel.value = match.title;
+            });
+            document.getElementById('import-sheet-selector').style.display = 'block';
+            document.getElementById('import-selected-btn').textContent = 'Import from Doc';
+            msgEl.textContent = `Found ${tabs.length} tab${tabs.length !== 1 ? 's' : ''}. Choose which to import, then click Import.`;
+            msgEl.className = 'import-msg success';
+        } catch (err) { msgEl.textContent = 'Error: ' + err.message; msgEl.className = 'import-msg error'; }
+    }
+
+    // Extract plain text from Google Docs API content nodes (handles paragraphs + tables)
+    function extractDocText(content) {
+        let text = '';
+        (content || []).forEach(item => {
+            if (item.paragraph) {
+                item.paragraph.elements.forEach(el => { if (el.textRun) text += el.textRun.content; });
+            } else if (item.table) {
+                item.table.tableRows.forEach(row => {
+                    const cells = row.tableCells.map(cell => extractDocText(cell.content).replace(/\n+$/, '').trim());
+                    text += cells.join('\t') + '\n';
+                });
+                text += '\n';
+            }
+        });
+        return text;
+    }
+
+    // Route to the correct import handler depending on mode
+    function doImportSelected() {
+        if (currentImportMode === 'docs') doImportFromDocTabs();
+        else doImportFromSheets();
+    }
+
+    async function doImportFromDocTabs() {
+        const vocabTabTitle = document.getElementById('vocab-sheet-select').value;
+        const sentTabTitle  = document.getElementById('sent-sheet-select').value;
+        const doVocab = document.getElementById('import-vocab-check').checked;
+        const doSent  = document.getElementById('import-sent-check').checked;
+        const msgEl = document.getElementById('import-msg');
+        msgEl.textContent = 'Importing…'; msgEl.className = 'import-msg';
+        try {
+            let vocabAdded = 0, sentAdded = 0;
+            if (doVocab) {
+                const tab = currentDocTabs.find(t => t.title === vocabTabTitle);
+                if (!tab) throw new Error(`Tab "${vocabTabTitle}" not found`);
+                const text = extractDocText(tab.content);
+                const rows = docTextToRows(text);
+                vocabAdded = importVocabFromRows(rows);
+            }
+            if (doSent) {
+                const tab = currentDocTabs.find(t => t.title === sentTabTitle);
+                if (!tab) throw new Error(`Tab "${sentTabTitle}" not found`);
+                const text = extractDocText(tab.content);
+                const parsed = parseImportText(text);
+                let added = 0;
+                parsed.forEach(({ english, tamil, explicitBlanks }) => {
+                    if (!teacherSentences.some(s => s.tamil.toLowerCase() === tamil.toLowerCase())) {
+                        teacherSentences.push(createTeacherSentence(english, tamil, explicitBlanks));
+                        added++;
+                    }
+                });
+                if (added > 0) saveTeacherSentences();
+                sentAdded = added;
+            }
+            const parts = [];
+            if (doVocab) parts.push(`${vocabAdded} new word${vocabAdded !== 1 ? 's' : ''}`);
+            if (doSent)  parts.push(`${sentAdded} new sentence${sentAdded !== 1 ? 's' : ''}`);
+            msgEl.textContent = parts.length ? 'Imported: ' + parts.join(', ') + '!' : 'Nothing selected to import.';
+            msgEl.className = parts.length ? 'import-msg success' : 'import-msg error';
+            renderImportSentenceList();
+        } catch (err) { msgEl.textContent = 'Error: ' + err.message; msgEl.className = 'import-msg error'; }
+    }
+
+    // Convert doc plain text to rows array (handles tab-separated tables and pipe-separated lines)
+    function docTextToRows(text) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.some(l => l.includes('\t'))) {
+            return lines.map(l => l.split('\t').map(c => c.trim()));
+        }
+        if (lines.some(l => l.includes('|'))) {
+            return lines.map(l => l.split('|').map(c => c.trim()));
+        }
+        // Alternating lines: treat as [English, Tamil] pairs
+        const rows = [];
+        for (let i = 0; i + 1 < lines.length; i += 2) rows.push([lines[i], lines[i + 1]]);
+        return rows;
+    }
+
+    async function fetchSheetsMetadata(url, apiKey) {
+        const spreadsheetId = extractGoogleSheetsId(url);
+        const msgEl = document.getElementById('import-msg');
+        if (!spreadsheetId) { msgEl.textContent = 'Could not find a spreadsheet ID in that URL.'; msgEl.className = 'import-msg error'; return; }
+        msgEl.textContent = 'Fetching spreadsheet info…'; msgEl.className = 'import-msg';
+        try {
+            const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?key=${encodeURIComponent(apiKey)}&fields=sheets.properties.title`);
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                if (resp.status === 403) throw new Error('Access denied — make sure the sheet is shared as "Anyone with the link can view"');
+                throw new Error(`Google Sheets API error ${resp.status}: ${errData.error?.message || ''}`);
+            }
+            const json = await resp.json();
+            const sheets = (json.sheets || []).map(s => s.properties.title);
+            if (!sheets.length) throw new Error('No tabs found in this spreadsheet.');
+            currentSheetsId = spreadsheetId;
+            // Populate tab dropdowns
+            ['vocab-sheet-select', 'sent-sheet-select'].forEach((selId, i) => {
+                const sel = document.getElementById(selId);
+                sel.innerHTML = sheets.map(name => `<option value="${name}">${name}</option>`).join('');
+                const preferred = i === 0
+                    ? ['vocab', 'vocabulary', 'words', 'word']
+                    : ['sentence', 'sentences', 'practice'];
+                const match = sheets.find(s => preferred.some(p => s.toLowerCase().includes(p)));
+                if (match) sel.value = match;
+            });
+            document.getElementById('import-sheet-selector').style.display = 'block';
+            document.getElementById('import-selected-btn').textContent = 'Import from Sheets';
+            msgEl.textContent = `Found ${sheets.length} tab${sheets.length !== 1 ? 's' : ''}. Choose which to import, then click Import.`;
+            msgEl.className = 'import-msg success';
+        } catch (err) { msgEl.textContent = 'Error: ' + err.message; msgEl.className = 'import-msg error'; }
+    }
+
+    async function doImportFromSheets() {
+        if (!currentSheetsId) return;
+        const apiKey = localStorage.getItem('tamilGoogleApiKey') || '';
+        const vocabSheet = document.getElementById('vocab-sheet-select').value;
+        const sentSheet = document.getElementById('sent-sheet-select').value;
+        const doVocab = document.getElementById('import-vocab-check').checked;
+        const doSent = document.getElementById('import-sent-check').checked;
+        const msgEl = document.getElementById('import-msg');
+        msgEl.textContent = 'Importing…'; msgEl.className = 'import-msg';
+        try {
+            let vocabAdded = 0, sentAdded = 0;
+            if (doVocab) {
+                const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${currentSheetsId}/values/${encodeURIComponent(vocabSheet)}!A:E?key=${encodeURIComponent(apiKey)}`);
+                if (!resp.ok) throw new Error(`Could not fetch vocab tab (${resp.status})`);
+                vocabAdded = importVocabFromRows((await resp.json()).values || []);
+            }
+            if (doSent) {
+                const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${currentSheetsId}/values/${encodeURIComponent(sentSheet)}!A:Z?key=${encodeURIComponent(apiKey)}`);
+                if (!resp.ok) throw new Error(`Could not fetch sentences tab (${resp.status})`);
+                sentAdded = importSentencesFromRows((await resp.json()).values || []);
+            }
+            const parts = [];
+            if (doVocab) parts.push(`${vocabAdded} new word${vocabAdded !== 1 ? 's' : ''}`);
+            if (doSent) parts.push(`${sentAdded} new sentence${sentAdded !== 1 ? 's' : ''}`);
+            msgEl.textContent = parts.length ? 'Imported: ' + parts.join(', ') + '!' : 'Nothing selected to import.';
+            msgEl.className = parts.length ? 'import-msg success' : 'import-msg error';
+            renderImportSentenceList();
+        } catch (err) { msgEl.textContent = 'Error: ' + err.message; msgEl.className = 'import-msg error'; }
+    }
+
+    // Parse vocab rows: detects header row, falls back to positional (A=English, B=Tamil, C=Pron, D=Cat)
+    function importVocabFromRows(rows) {
+        if (!rows.length) return 0;
+        let startRow = 0, enCol = 0, taCol = 1, pronCol = 2, catCol = 3;
+        const first = rows[0].map(c => (c || '').toLowerCase().trim());
+        if (first.some(c => ['english', 'en', 'tamil', 'ta'].includes(c))) {
+            startRow = 1;
+            enCol   = first.findIndex(c => ['english','en'].includes(c));   if (enCol === -1)   enCol = 0;
+            taCol   = first.findIndex(c => ['tamil','ta'].includes(c));      if (taCol === -1)   taCol = 1;
+            pronCol = first.findIndex(c => ['pronunciation','pron'].includes(c)); if (pronCol === -1) pronCol = 2;
+            catCol  = first.findIndex(c => ['category','cat'].includes(c));  if (catCol === -1)  catCol = 3;
+        }
+        let added = 0;
+        for (let i = startRow; i < rows.length; i++) {
+            const row = rows[i];
+            const en = (row[enCol] || '').trim(), ta = (row[taCol] || '').trim();
+            if (!en || !ta) continue;
+            if (data.some(d => d.ta.toLowerCase() === ta.toLowerCase())) continue;
+            const pron = (row[pronCol] || '').trim();
+            const cat  = (row[catCol]  || 'General').trim();
+            const maxId = [...data, ...customWords].reduce((m, w) => typeof w.id === 'number' ? Math.max(m, w.id) : m, 9999);
+            const newWord = { id: maxId + 1, en, ta, pron, cat, _custom: true };
+            customWords.push(newWord); data.push(newWord);
+            if (!wordMemory[newWord.id]) wordMemory[newWord.id] = { level: 0, lastReview: 0, reviewCount: 0 };
+            added++;
+        }
+        if (added > 0) { saveCustomWords(); saveMemory(); populateCategories(); filterCategory(); }
+        return added;
+    }
+
+    // Parse sentence rows: A=English, B=Tamil, C+ = explicit blank words (optional)
+    function importSentencesFromRows(rows) {
+        if (!rows.length) return 0;
+        let startRow = 0, enCol = 0, taCol = 1, blankStart = 2;
+        const first = rows[0].map(c => (c || '').toLowerCase().trim());
+        if (first.some(c => ['english','en','tamil','ta'].includes(c))) {
+            startRow = 1;
+            enCol = first.findIndex(c => ['english','en'].includes(c)); if (enCol === -1) enCol = 0;
+            taCol = first.findIndex(c => ['tamil','ta'].includes(c));   if (taCol === -1) taCol = 1;
+            blankStart = Math.max(enCol, taCol) + 1;
+        }
+        let added = 0;
+        for (let i = startRow; i < rows.length; i++) {
+            const row = rows[i];
+            const english = (row[enCol] || '').trim(), tamil = (row[taCol] || '').trim();
+            if (!english || !tamil) continue;
+            if (teacherSentences.some(s => s.tamil.toLowerCase() === tamil.toLowerCase())) continue;
+            const blanks = row.slice(blankStart).map(c => (c || '').trim()).filter(c => c);
+            teacherSentences.push(createTeacherSentence(english, tamil, blanks.length ? blanks : null));
+            added++;
+        }
+        if (added > 0) saveTeacherSentences();
+        return added;
+    }
+
+    // Parse pasted / fetched text into {english, tamil, explicitBlanks} objects
+    function parseImportText(text) {
+        const results = [];
+        text.split(/\n\s*\n/).map(b => b.trim()).filter(b => b).forEach(block => {
+            const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+            if (!lines.length) return;
+            let english = '', tamil = '', explicitBlanks = null;
+            if (lines.length === 1 && lines[0].includes('|')) {
+                const parts = lines[0].split('|').map(p => p.trim());
+                english = parts[0]; tamil = parts[1] || '';
+                if (parts[2]) explicitBlanks = parts[2].split(',').map(w => w.trim()).filter(w => w);
+            } else if (lines.some(l => /^(EN|English)\s*:/i.test(l))) {
+                lines.forEach(l => {
+                    if (/^(EN|English)\s*:/i.test(l)) english = l.replace(/^(EN|English)\s*:\s*/i, '');
+                    else if (/^(TA|Tamil)\s*:/i.test(l)) tamil = l.replace(/^(TA|Tamil)\s*:\s*/i, '');
+                    else if (/^BLANK[S]?\s*:/i.test(l)) explicitBlanks = l.replace(/^BLANK[S]?\s*:\s*/i, '').split(',').map(w => w.trim()).filter(w => w);
+                });
+            } else if (lines.length >= 2) {
+                english = lines[0]; tamil = lines[1];
+                if (lines[2] && !/^[A-Z]/.test(lines[2]))
+                    explicitBlanks = lines[2].split(',').map(w => w.trim()).filter(w => w);
+            }
+            if (english && tamil) results.push({ english, tamil, explicitBlanks });
+        });
+        return results;
+    }
+
+    function doImportSentences() {
+        const text = (document.getElementById('import-text').value || '').trim();
+        const msgEl = document.getElementById('import-msg');
+        if (!text) { msgEl.textContent = 'Please paste some sentences first.'; msgEl.className = 'import-msg error'; return; }
+        const parsed = parseImportText(text);
+        if (!parsed.length) { msgEl.textContent = 'Could not parse any sentences. Try: English line, Tamil line, blank line between pairs.'; msgEl.className = 'import-msg error'; return; }
+        let added = 0;
+        parsed.forEach(({ english, tamil, explicitBlanks }) => {
+            if (!teacherSentences.some(s => s.tamil.toLowerCase() === tamil.toLowerCase())) {
+                teacherSentences.push(createTeacherSentence(english, tamil, explicitBlanks));
+                added++;
+            }
+        });
+        saveTeacherSentences();
+        document.getElementById('import-text').value = '';
+        const skipped = parsed.length - added;
+        msgEl.textContent = `Imported ${added} sentence${added !== 1 ? 's' : ''}!` +
+            (skipped > 0 ? ` (${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped)` : '');
+        msgEl.className = 'import-msg success';
+        renderImportSentenceList();
+    }
+
+    function renderImportSentenceList() {
+        const listEl = document.getElementById('import-sentence-list');
+        const itemsEl = document.getElementById('import-sentence-items');
+        if (!teacherSentences.length) { listEl.style.display = 'none'; return; }
+        listEl.style.display = 'block';
+        document.getElementById('import-count').textContent = teacherSentences.length;
+        itemsEl.innerHTML = '';
+        teacherSentences.forEach((s, idx) => {
+            const item = document.createElement('div');
+            item.className = 'import-sentence-item';
+            item.innerHTML = `<div class="import-sentence-text">
+                <div class="import-sentence-en">${s.english}</div>
+                <div class="import-sentence-ta">${s.tamil}</div>
+                <div class="import-sentence-blanks">Blanks: ${s.blanks.join(', ')}</div>
+            </div><button class="btn-import-delete" onclick="deleteTeacherSentence(${idx})">&#x2715;</button>`;
+            itemsEl.appendChild(item);
+        });
+    }
+
+    function deleteTeacherSentence(idx) {
+        teacherSentences.splice(idx, 1);
+        saveTeacherSentences();
+        renderImportSentenceList();
     }
 
     // --- OPPOSITES MATCHING LOGIC ---
@@ -1681,6 +2244,77 @@
     }
 
 </script>
+
+<!-- IMPORT SENTENCES PANEL -->
+<div id="import-overlay" onclick="handleImportOverlayClick(event)">
+    <div id="import-panel">
+        <h2>Import Vocab &amp; Sentences</h2>
+
+        <!-- URL fetch -->
+        <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:#555;">From Google Sheets or Doc URL</label>
+            <div style="display:flex; gap:8px;">
+                <input type="url" id="import-url" placeholder="https://docs.google.com/spreadsheets/d/… or /document/d/…"
+                    style="flex:1; padding:8px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                <button onclick="doFetchFromUrl()" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:8px; font-size:0.85rem; cursor:pointer; white-space:nowrap;">Fetch</button>
+            </div>
+            <details style="margin-top:6px;">
+                <summary style="font-size:0.78rem; color:#888; cursor:pointer;">API key settings</summary>
+                <div style="margin-top:6px; padding:10px; background:#f9f9f9; border-radius:8px;">
+                    <p style="margin:0 0 6px 0; font-size:0.75rem; color:#888;">Requires a Google Cloud API key with <b>Google Sheets API</b> and <b>Google Docs API</b> enabled (Google Cloud Console → APIs &amp; Services → Library). Share the sheet/doc as "Anyone with the link can view".</p>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="import-api-key-input" placeholder="Paste Google API key here"
+                            style="flex:1; padding:6px; border:1px solid #ddd; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                        <button onclick="saveApiKeyFromInput()" style="background:#555; color:white; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer;">Save</button>
+                    </div>
+                    <div id="api-key-status" style="font-size:0.75rem; color:#aaa; margin-top:4px;"></div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Tab selector (shown after Fetch detects tabs) -->
+        <div id="import-sheet-selector" style="display:none; margin-bottom:14px; padding:12px; background:#f0f4ff; border-radius:8px;">
+            <div style="font-size:0.82rem; font-weight:bold; color:#555; margin-bottom:8px;">Select tabs to import:</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:120px;">
+                    <label style="font-size:0.75rem; color:#888; display:block; margin-bottom:2px;">Vocabulary tab</label>
+                    <select id="vocab-sheet-select" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:6px; font-size:0.82rem;"></select>
+                </div>
+                <div style="flex:1; min-width:120px;">
+                    <label style="font-size:0.75rem; color:#888; display:block; margin-bottom:2px;">Sentences tab</label>
+                    <select id="sent-sheet-select" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:6px; font-size:0.82rem;"></select>
+                </div>
+            </div>
+            <div style="margin-top:6px; display:flex; gap:14px;">
+                <label style="font-size:0.78rem; color:#666;"><input type="checkbox" id="import-vocab-check" checked style="margin-right:4px;">Import vocabulary</label>
+                <label style="font-size:0.78rem; color:#666;"><input type="checkbox" id="import-sent-check" checked style="margin-right:4px;">Import sentences</label>
+            </div>
+            <button id="import-selected-btn" onclick="doImportSelected()" style="margin-top:10px; background:var(--primary); color:white; border:none; padding:8px; border-radius:8px; font-size:0.85rem; cursor:pointer; width:100%; font-weight:bold;">Import</button>
+        </div>
+
+        <!-- Paste text fallback -->
+        <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:#555;">Or paste sentences directly</label>
+        <p class="import-hint">
+            <b>Pairs:</b> English line, then Tamil line, blank line between each pair<br>
+            <b>Pipe:</b> English | Tamil (one line)<br>
+            <b>Labeled:</b> EN: … / TA: … lines<br>
+            Optional: add <b>BLANK: word1, word2</b> to specify which words to fill in.
+        </p>
+        <textarea id="import-text" placeholder="How are you?&#10;Neenga eppadi irukeenga?&#10;&#10;I like mangoes.&#10;Enakku maambazham pidikkum."></textarea>
+
+        <div id="import-msg" class="import-msg"></div>
+
+        <div class="import-actions">
+            <button class="btn-import-do" onclick="doImportSentences()">Import Sentences</button>
+            <button class="btn-import-cancel" onclick="closeImportPanel()">Cancel</button>
+        </div>
+
+        <div class="import-sentence-list" id="import-sentence-list" style="display:none;">
+            <h3>Imported sentences (<span id="import-count">0</span>)</h3>
+            <div id="import-sentence-items"></div>
+        </div>
+    </div>
+</div>
 
 <!-- ADMIN PANEL: tap "Tamil Master" title 5 times to open -->
 <div id="admin-overlay" onclick="handleAdminOverlayClick(event)">
