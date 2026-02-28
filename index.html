@@ -613,6 +613,7 @@
         <button id="btn-match" class="mode-btn" onclick="setMode('match')">Opposites</button>
         <button id="btn-fill" class="mode-btn" onclick="setMode('fill')">Fill Blank</button>
         <button id="btn-list" class="mode-btn" onclick="setMode('list')">Vocab List</button>
+        <button class="mode-btn" onclick="openImportPanel()" style="background:#FF9800; color:white;">⬆ Import</button>
     </div>
     <div id="direction-toggle" style="display:flex; gap:5px; width:100%; justify-content:center; margin-top:5px;">
         <button id="btn-en-ta" class="mode-btn active" onclick="setDirection('en-ta')" style="font-size:0.8rem; padding:6px 10px;">EN→TA</button>
@@ -698,10 +699,7 @@
     </div>
 
     <div id="area-fill" class="fill-container">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-            <div class="score-board" style="margin-bottom:0;">Score: <span id="fill-score">0</span></div>
-            <button onclick="openImportPanel()" style="background:var(--primary); color:white; border:none; border-radius:8px; padding:5px 13px; font-size:0.78rem; cursor:pointer; font-weight:bold;">+ Import</button>
-        </div>
+        <div class="score-board">Score: <span id="fill-score">0</span></div>
         <div id="fill-source-badge"><span id="fill-source-text"></span></div>
         <div class="sentence-display">
             <div class="sentence-tamil" id="fill-sentence-tamil"></div>
