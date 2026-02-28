@@ -1508,12 +1508,18 @@
         let tamilHTML = sentence.tamil;
         activeBlanks.forEach((blank, i) => {
             const inp = `<input type="text" class="blank-input" id="fill-input-${i}" autocomplete="off" style="min-width:${blank.ta.length * 12 + 20}px;" />`;
+            const before = tamilHTML;
             if (blank.ta.includes(' ')) {
                 const idx = tamilHTML.toLowerCase().indexOf(blank.ta.toLowerCase());
                 if (idx >= 0) tamilHTML = tamilHTML.slice(0, idx) + inp + tamilHTML.slice(idx + blank.ta.length);
             } else {
                 const esc = blank.ta.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 tamilHTML = tamilHTML.replace(new RegExp('\\b' + esc + '\\b', 'i'), inp);
+                // Fallback: if \b regex didn't match, use simple indexOf
+                if (tamilHTML === before) {
+                    const idx = tamilHTML.toLowerCase().indexOf(blank.ta.toLowerCase());
+                    if (idx >= 0) tamilHTML = tamilHTML.slice(0, idx) + inp + tamilHTML.slice(idx + blank.ta.length);
+                }
             }
         });
 
