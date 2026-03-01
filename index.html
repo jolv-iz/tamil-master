@@ -1689,6 +1689,7 @@
         try {
             const resp = await fetch(`https://docs.googleapis.com/v1/documents/${docId}?key=${encodeURIComponent(apiKey)}&includeTabsContent=true`);
             if (!resp.ok) {
+                if (resp.status === 401) throw new Error('Invalid API key, or Google Docs API not enabled — go to Google Cloud Console → APIs & Services → Library → enable "Google Docs API"');
                 if (resp.status === 403) throw new Error('Access denied — make sure the doc is shared as "Anyone with the link can view"');
                 if (resp.status === 404) throw new Error('Document not found — check the URL');
                 throw new Error(`Google Docs API error ${resp.status}`);
@@ -1816,6 +1817,7 @@
             const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?key=${encodeURIComponent(apiKey)}&fields=sheets.properties.title`);
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
+                if (resp.status === 401) throw new Error('Invalid API key, or Google Sheets API not enabled — go to Google Cloud Console → APIs & Services → Library → enable "Google Sheets API"');
                 if (resp.status === 403) throw new Error('Access denied — make sure the sheet is shared as "Anyone with the link can view"');
                 throw new Error(`Google Sheets API error ${resp.status}: ${errData.error?.message || ''}`);
             }
