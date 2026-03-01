@@ -1667,65 +1667,36 @@
         const url = (document.getElementById('import-url').value || '').trim();
         const msgEl = document.getElementById('import-msg');
         if (!url) { msgEl.textContent = 'Please enter a Google Sheets or Doc URL.'; msgEl.className = 'import-msg error'; return; }
-        const apiKey = localStorage.getItem('tamilGoogleApiKey') || '';
-        if (!apiKey) { msgEl.textContent = 'Please save a Google API key in the settings below.'; msgEl.className = 'import-msg error'; return; }
         document.getElementById('import-sheet-selector').style.display = 'none';
         if (isGoogleSheetsUrl(url)) {
+            const apiKey = localStorage.getItem('tamilGoogleApiKey') || '';
+            if (!apiKey) { msgEl.textContent = 'Google Sheets requires an API key — expand "API key settings" below and save one.'; msgEl.className = 'import-msg error'; return; }
             currentImportMode = 'sheets';
             await fetchSheetsMetadata(url, apiKey);
         } else {
-            await fetchGoogleDocWithTabs(url, apiKey);
+            await fetchGoogleDoc(url);
         }
     }
 
-    let currentDocTabs = [];   // [{title, content}] from Docs API
+    let currentDocTabs = [];
     let currentImportMode = 'sheets'; // 'sheets' | 'docs'
 
-    async function fetchGoogleDocWithTabs(url, apiKey) {
+    // Google Docs: use direct export URL — no API key needed
+    async function fetchGoogleDoc(url) {
         const docId = extractGoogleDocId(url);
         const msgEl = document.getElementById('import-msg');
         if (!docId) { msgEl.textContent = 'Could not find a document ID in that URL.'; msgEl.className = 'import-msg error'; return; }
         msgEl.textContent = 'Fetching…'; msgEl.className = 'import-msg';
         try {
-            const resp = await fetch(`https://docs.googleapis.com/v1/documents/${docId}?key=${encodeURIComponent(apiKey)}&includeTabsContent=true`);
+            const resp = await fetch(`https://docs.google.com/document/d/${docId}/export?format=txt`);
             if (!resp.ok) {
-                if (resp.status === 401) throw new Error('Invalid API key, or Google Docs API not enabled — go to Google Cloud Console → APIs & Services → Library → enable "Google Docs API"');
                 if (resp.status === 403) throw new Error('Access denied — make sure the doc is shared as "Anyone with the link can view"');
-                if (resp.status === 404) throw new Error('Document not found — check the URL');
-                throw new Error(`Google Docs API error ${resp.status}`);
+                throw new Error(`Could not fetch document (${resp.status})`);
             }
-            const doc = await resp.json();
-            const tabs = doc.tabs || [];
-
-            if (!tabs.length) {
-                // No tabs — fall back to reading the main body
-                const text = extractDocText(doc.body?.content || []);
-                document.getElementById('import-text').value = text;
-                document.getElementById('import-sheet-selector').style.display = 'none';
-                msgEl.textContent = 'Document fetched (no tabs found). Review the text below and click Import.';
-                msgEl.className = 'import-msg success';
-                return;
-            }
-
-            // Store tabs and show selector
-            currentDocTabs = tabs.map(t => ({
-                title: t.tabProperties?.title || 'Untitled',
-                content: t.documentTab?.body?.content || []
-            }));
+            const text = await resp.text();
+            document.getElementById('import-text').value = text.trim();
             currentImportMode = 'docs';
-
-            ['vocab-sheet-select', 'sent-sheet-select'].forEach((selId, i) => {
-                const sel = document.getElementById(selId);
-                sel.innerHTML = currentDocTabs.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
-                const preferred = i === 0
-                    ? ['vocab', 'vocabulary', 'words', 'word']
-                    : ['sentence', 'sentences', 'practice'];
-                const match = currentDocTabs.find(t => preferred.some(p => t.title.toLowerCase().includes(p)));
-                if (match) sel.value = match.title;
-            });
-            document.getElementById('import-sheet-selector').style.display = 'block';
-            document.getElementById('import-selected-btn').textContent = 'Import from Doc';
-            msgEl.textContent = `Found ${tabs.length} tab${tabs.length !== 1 ? 's' : ''}. Choose which to import, then click Import.`;
+            msgEl.textContent = 'Document fetched! Review below, then click "Import Sentences" or "Import Vocab".';
             msgEl.className = 'import-msg success';
         } catch (err) { msgEl.textContent = 'Error: ' + err.message; msgEl.className = 'import-msg error'; }
     }
@@ -1952,6 +1923,35 @@
             if (english && tamil) results.push({ english, tamil, explicitBlanks });
         });
         return results;
+    }
+
+    function doImportVocabFromText() {
+        const text = (document.getElementById('import-text').value || '').trim();
+        const msgEl = document.getElementById('import-msg');
+        if (!text) { msgEl.textContent = 'No text to import.'; msgEl.className = 'import-msg error'; return; }
+        // Parse tab-indented Google Doc format: English line, then \tTamil - Pronunciation
+        const rows = [];
+        const lines = text.split('\n');
+        let pendingEn = null;
+        for (const line of lines) {
+            if (!line.trim()) { pendingEn = null; continue; }
+            if (line.startsWith('\t')) {
+                if (pendingEn) {
+                    const cleaned = line.trim();
+                    const dashIdx = cleaned.search(/ [-–] /);
+                    const ta = dashIdx >= 0 ? cleaned.slice(0, dashIdx).trim() : cleaned;
+                    const pron = dashIdx >= 0 ? cleaned.slice(dashIdx + 3).trim() : '';
+                    rows.push([pendingEn, ta, pron]);
+                    pendingEn = null;
+                }
+            } else {
+                pendingEn = line.trim();
+            }
+        }
+        if (!rows.length) { msgEl.textContent = 'No vocab pairs found. Expected: English line, then tab-indented Tamil line.'; msgEl.className = 'import-msg error'; return; }
+        const added = importVocabFromRows(rows);
+        msgEl.textContent = `Imported ${added} new word${added !== 1 ? 's' : ''}! (${rows.length - added} already existed)`;
+        msgEl.className = 'import-msg success';
     }
 
     function doImportSentences() {
@@ -2299,18 +2299,18 @@
         </div>
 
         <!-- Paste text fallback -->
-        <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:#555;">Or paste sentences directly</label>
+        <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:#555;">Or paste / review text</label>
         <p class="import-hint">
-            <b>Pairs:</b> English line, then Tamil line, blank line between each pair<br>
-            <b>Pipe:</b> English | Tamil (one line)<br>
-            <b>Labeled:</b> EN: … / TA: … lines<br>
-            Optional: add <b>BLANK: word1, word2</b> to specify which words to fill in.
+            <b>Vocab (Google Doc format):</b> English word, then tab-indented Tamil - Pronunciation<br>
+            <b>Sentence pairs:</b> English line, Tamil line, blank line between pairs<br>
+            <b>Pipe:</b> English | Tamil
         </p>
         <textarea id="import-text" placeholder="How are you?&#10;Neenga eppadi irukeenga?&#10;&#10;I like mangoes.&#10;Enakku maambazham pidikkum."></textarea>
 
         <div id="import-msg" class="import-msg"></div>
 
         <div class="import-actions">
+            <button class="btn-import-do" onclick="doImportVocabFromText()" style="background:#FF9800;">Import Vocab</button>
             <button class="btn-import-do" onclick="doImportSentences()">Import Sentences</button>
             <button class="btn-import-cancel" onclick="closeImportPanel()">Cancel</button>
         </div>
