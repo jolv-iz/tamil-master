@@ -1,6 +1,6 @@
 // Tamil Master Vocabulary Database
-// Last updated: 2026-02-14
-// Total words: 246 (removed 2 duplicate verb entries)
+// Last updated: 2026-04-13
+// Total words: 304
 // Verb data cleaned and enhanced with grammar metadata:
 //   - 70 verb conjugations with full grammar structure
 //   - 3 verb types: regular, dative-stative, modal-auxiliary-dative-stative
@@ -252,8 +252,63 @@ const data = [
     {id:257, en:"8", ta:"Yettu", pron:"", cat:"Number"},
     {id:258, en:"9", ta:"Onbathu", pron:"", cat:"Number"},
     {id:259, en:"10", ta:"Pathu", pron:"", cat:"Number"},
-    {id:260, en:"11", ta:"Pathionnu", pron:"", cat:"Number"},
-    {id:261, en:"12", ta:"Panandu", pron:"", cat:"Number"}
+    {id:260, en:"11", ta:"Pathinonnu", pron:"", cat:"Number"},
+    {id:261, en:"12", ta:"Panandu", pron:"", cat:"Number"},
+
+    // Greetings
+    {id:262, en:"Hello / Hi / Bye", ta:"Vanakkam", pron:"Vaa-naa-kaa-im", cat:"Greeting"},
+    {id:263, en:"Thank you", ta:"Nandree", pron:"Nun-dree", cat:"Greeting"},
+    {id:264, en:"Food / Meal", ta:"Sapadu", pron:"", cat:"Noun"},
+
+    // Colors
+    {id:265, en:"Green", ta:"Patchai", pron:"", cat:"Color"},
+    {id:266, en:"Blue", ta:"Neelam", pron:"", cat:"Color"},
+    {id:267, en:"Red", ta:"Sivapu", pron:"", cat:"Color"},
+    {id:268, en:"Pink", ta:"Ilamsivapu", pron:"", cat:"Color"},
+    {id:269, en:"Yellow", ta:"Manjal", pron:"", cat:"Color"},
+    {id:270, en:"Orange", ta:"Semmanjal", pron:"", cat:"Color"},
+    {id:271, en:"Black", ta:"Karupu", pron:"", cat:"Color"},
+    {id:272, en:"White", ta:"Vellai", pron:"", cat:"Color"},
+    {id:273, en:"Grey", ta:"Saambal Niram", pron:"", cat:"Color"},
+    {id:274, en:"Violet", ta:"Ootha", pron:"", cat:"Color"},
+
+    // Days of the Week (ta = full form, pron = short form)
+    {id:275, en:"Sunday", ta:"Niyayatru Kilamai", pron:"Niyayaru", cat:"Day"},
+    {id:276, en:"Monday", ta:"Thingal Kilamai", pron:"Thingal", cat:"Day"},
+    {id:277, en:"Tuesday", ta:"Sevvai Kilamai", pron:"Sevvai", cat:"Day"},
+    {id:278, en:"Wednesday", ta:"Bhudhan Kilamai", pron:"Bhudhan", cat:"Day"},
+    {id:279, en:"Thursday", ta:"Viyalak Kilamai", pron:"Viyalan", cat:"Day"},
+    {id:280, en:"Friday", ta:"Velli Kilamai", pron:"Velli", cat:"Day"},
+    {id:281, en:"Saturday", ta:"Sani Kilamai", pron:"Sani", cat:"Day"},
+
+    // Connectors and Particles
+    {id:282, en:"Because of that", ta:"Athunaela", pron:"", cat:"Conjunction"},
+    {id:283, en:"A / An", ta:"Oru", pron:"", cat:"Abstract"},
+    {id:284, en:"Some", ta:"Sila", pron:"", cat:"Quantity"},
+    {id:285, en:"Frequently / Now and then", ta:"Appo Appo", pron:"", cat:"Adverb"},
+    {id:286, en:"Simply / Just like that", ta:"Chumma", pron:"", cat:"Adverb"},
+    {id:287, en:"Different", ta:"Vera", pron:"", cat:"Adjective"},
+    {id:288, en:"Than (comparisons)", ta:"Vida", pron:"", cat:"Postposition"},
+    {id:289, en:"Work", ta:"Vaelai", pron:"", cat:"Noun"},
+    {id:290, en:"Money", ta:"Panam", pron:"", cat:"Noun"},
+
+    // Key Verbs (base forms)
+    {id:291, en:"Do / Make", ta:"Pannu", pron:"", cat:"Verb", type:"base"},
+    {id:292, en:"Tell / Say", ta:"Sollu", pron:"", cat:"Verb", type:"base"},
+    {id:293, en:"Eat", ta:"Sapudu", pron:"", cat:"Verb", type:"base"},
+    {id:294, en:"Sleep", ta:"Thoongu", pron:"", cat:"Verb", type:"base"},
+    {id:295, en:"Speak / Talk", ta:"Paesu", pron:"", cat:"Verb", type:"base"},
+    {id:296, en:"Wash", ta:"Kaluvu", pron:"", cat:"Verb", type:"base"},
+    {id:297, en:"Search", ta:"Thaedu", pron:"", cat:"Verb", type:"base"},
+    {id:298, en:"Sing", ta:"Paadu", pron:"", cat:"Verb", type:"base"},
+    {id:299, en:"Dance", ta:"Aadu", pron:"", cat:"Verb", type:"base"},
+    {id:300, en:"Cook", ta:"Samai", pron:"", cat:"Verb", type:"base"},
+    {id:301, en:"Come", ta:"Vaa", pron:"", cat:"Verb", type:"base"},
+    {id:302, en:"Go", ta:"Poo", pron:"", cat:"Verb", type:"base"},
+
+    // Adjectives
+    {id:303, en:"Favourite", ta:"Pudicha", pron:"", cat:"Adjective"},
+    {id:304, en:"Fear", ta:"Bayam", pron:"", cat:"Abstract"}
 ];
 
 // Opposite pairs for matching game
