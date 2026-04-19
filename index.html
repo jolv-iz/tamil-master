@@ -691,20 +691,24 @@
         }
         .conj-verb-hint { font-size: 0.9rem; color: #aaa; }
         .conj-meaning-display { font-size: 1.6rem; font-weight: bold; color: var(--text); }
-        .conj-answer-display {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-            min-height: 36px;
-            transition: opacity 0.15s;
+        .conj-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        .conj-answer-display.hidden { opacity: 0; }
-        .conj-tap-hint {
-            font-size: 0.78rem;
-            color: #ccc;
-            position: absolute;
-            bottom: 12px;
-        }
+        .conj-input:focus { border-color: var(--primary); }
+        .conj-input.correct { border-color: var(--success); background: #e8f5e9; color: var(--success); }
+        .conj-input.wrong { border-color: var(--error); background: #ffebee; }
+        .conj-feedback { font-size: 1rem; font-weight: bold; min-height: 22px; }
+        .conj-feedback.correct { color: var(--success); }
+        .conj-feedback.wrong { color: var(--error); }
+        .conj-correct-answer { font-size: 1rem; color: var(--primary); font-weight: bold; min-height: 22px; }
         .conj-nav {
             display: flex;
             gap: 16px;
@@ -875,15 +879,19 @@
         </div>
         <div id="conj-card-view" class="conj-card-view">
             <div class="conj-progress">Pattern <span id="conj-current">1</span> of <span id="conj-total">17</span></div>
-            <div class="conj-flashcard" onclick="revealConjAnswer()">
+            <div class="conj-flashcard">
                 <div class="conj-verb-hint" id="conj-verb-hint"></div>
                 <div class="conj-meaning-display" id="conj-meaning-display"></div>
-                <div class="conj-answer-display hidden" id="conj-answer-display"></div>
-                <div class="conj-tap-hint" id="conj-tap-hint">Tap to reveal</div>
+                <input type="text" id="conj-input" class="conj-input" placeholder="Type Tamil form..."
+                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                    onkeydown="if(event.key==='Enter') checkConjAnswer()">
+                <div class="conj-feedback" id="conj-feedback"></div>
+                <div class="conj-correct-answer" id="conj-correct-answer"></div>
             </div>
             <div class="conj-nav">
                 <button class="btn" onclick="prevConj()">←</button>
                 <button class="conj-shuffle-btn" onclick="shuffleConj()">🔀 Shuffle</button>
+                <button class="btn" id="conj-check-btn" onclick="checkConjAnswer()">Check</button>
                 <button class="btn" onclick="nextConj()">→</button>
             </div>
         </div>
@@ -2529,27 +2537,58 @@
     }
 
     function loadConjCard(ta) {
-        const total = conjugationPatterns.length;
         const patIdx = conjPracticeOrder[conjPracticeIndex];
         const p = conjugationPatterns[patIdx];
-        const form = conjugate(ta, p.suffix);
-        const altForm = p.alt ? ' / ' + conjugate(ta, p.alt) : '';
 
         document.getElementById('conj-current').textContent = conjPracticeIndex + 1;
-        document.getElementById('conj-total').textContent = total;
+        document.getElementById('conj-total').textContent = conjugationPatterns.length;
         document.getElementById('conj-verb-hint').textContent = `${ta} (${conjCurrentVerb.en})`;
         document.getElementById('conj-meaning-display').textContent = p.meaning;
-        document.getElementById('conj-answer-display').textContent = form + altForm;
-        document.getElementById('conj-answer-display').classList.add('hidden');
-        document.getElementById('conj-tap-hint').style.opacity = '1';
+
+        const inputEl = document.getElementById('conj-input');
+        inputEl.value = '';
+        inputEl.className = 'conj-input';
+        inputEl.disabled = false;
+        document.getElementById('conj-feedback').textContent = '';
+        document.getElementById('conj-feedback').className = 'conj-feedback';
+        document.getElementById('conj-correct-answer').textContent = '';
+        document.getElementById('conj-check-btn').disabled = false;
+        setTimeout(() => inputEl.focus(), 50);
     }
 
-    function revealConjAnswer() {
-        const ans = document.getElementById('conj-answer-display');
-        if (ans.classList.contains('hidden')) {
-            ans.classList.remove('hidden');
-            document.getElementById('conj-tap-hint').style.opacity = '0';
+    function checkConjAnswer() {
+        const inputEl = document.getElementById('conj-input');
+        const typed = inputEl.value.trim();
+        if (!typed) return;
+
+        const ta = conjCurrentVerb.ta.split('/')[0].trim();
+        const patIdx = conjPracticeOrder[conjPracticeIndex];
+        const p = conjugationPatterns[patIdx];
+        const correct = conjugate(ta, p.suffix);
+        const altCorrect = p.alt ? conjugate(ta, p.alt) : null;
+
+        const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+        const isCorrect = norm(typed) === norm(correct) ||
+                          (altCorrect && norm(typed) === norm(altCorrect));
+
+        const feedback = document.getElementById('conj-feedback');
+        const correctAns = document.getElementById('conj-correct-answer');
+
+        if (isCorrect) {
+            feedback.textContent = '✓ Correct!';
+            feedback.className = 'conj-feedback correct';
+            correctAns.textContent = '';
+            inputEl.className = 'conj-input correct';
+        } else {
+            feedback.textContent = '✗ Not quite';
+            feedback.className = 'conj-feedback wrong';
+            const altStr = altCorrect ? ` / ${altCorrect}` : '';
+            correctAns.textContent = `Answer: ${correct}${altStr}`;
+            inputEl.className = 'conj-input wrong';
         }
+
+        inputEl.disabled = true;
+        document.getElementById('conj-check-btn').disabled = true;
     }
 
     function nextConj() {
