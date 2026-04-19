@@ -590,6 +590,138 @@
             background: #f0f4ff; border-radius: 10px; padding: 2px 10px;
             margin-bottom: 2px; display: none;
         }
+        /* --- CONJUGATION MODE STYLES --- */
+        .conj-container {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            max-height: calc(100vh - 180px);
+        }
+        .conj-verb-selector {
+            background: white;
+            padding: 14px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .conj-select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            font-size: 1rem;
+            background: white;
+            color: var(--text);
+        }
+        .conj-base-label {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        .conj-base-en {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #999;
+        }
+        .conj-submode {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .conj-table-view {
+            overflow-y: auto;
+        }
+        .conj-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .conj-table thead th {
+            background: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .conj-table tbody tr:nth-child(even) { background: #fafafa; }
+        .conj-table tbody td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            vertical-align: top;
+        }
+        .conj-ta { color: var(--primary); font-weight: bold; }
+        .conj-alt { color: #aaa; font-size: 0.82rem; margin-top: 2px; }
+        .conj-note { font-size: 0.75rem; color: #bbb; font-style: italic; margin-top: 2px; }
+        .conj-card-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .conj-progress {
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+        }
+        .conj-flashcard {
+            width: 100%;
+            min-height: 190px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+            box-sizing: border-box;
+            cursor: pointer;
+            text-align: center;
+            gap: 10px;
+            position: relative;
+        }
+        .conj-verb-hint { font-size: 0.9rem; color: #aaa; }
+        .conj-meaning-display { font-size: 1.6rem; font-weight: bold; color: var(--text); }
+        .conj-answer-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            min-height: 36px;
+            transition: opacity 0.15s;
+        }
+        .conj-answer-display.hidden { opacity: 0; }
+        .conj-tap-hint {
+            font-size: 0.78rem;
+            color: #ccc;
+            position: absolute;
+            bottom: 12px;
+        }
+        .conj-nav {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+        }
+        .conj-shuffle-btn {
+            background: var(--secondary);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -613,6 +745,7 @@
         <button id="btn-match" class="mode-btn" onclick="setMode('match')">Opposites</button>
         <button id="btn-fill" class="mode-btn" onclick="setMode('fill')">Fill Blank</button>
         <button id="btn-list" class="mode-btn" onclick="setMode('list')">Vocab List</button>
+        <button id="btn-conj" class="mode-btn" onclick="setMode('conj')">Conjugate</button>
         <button class="mode-btn" onclick="openImportPanel()" style="background:#FF9800; color:white;">⬆ Import</button>
     </div>
     <div id="direction-toggle" style="display:flex; gap:5px; width:100%; justify-content:center; margin-top:5px;">
@@ -721,6 +854,39 @@
             <button class="btn" id="btn-view-memory" onclick="setVocabView('memory')">By Memory Level</button>
         </div>
         <div id="vocab-list-content"></div>
+    </div>
+
+    <!-- Conjugation Mode -->
+    <div id="area-conj" class="conj-container" style="display:none;">
+        <div class="conj-verb-selector">
+            <select id="conj-select" class="conj-select" onchange="onConjVerbChange()"></select>
+            <div class="conj-base-label" id="conj-base-label"></div>
+            <div class="conj-base-en" id="conj-base-en"></div>
+        </div>
+        <div class="conj-submode">
+            <button id="btn-conj-study" class="mode-btn active" onclick="setConjView('study')">Study Table</button>
+            <button id="btn-conj-practice" class="mode-btn" onclick="setConjView('practice')">Practice</button>
+        </div>
+        <div id="conj-table-view" class="conj-table-view">
+            <table class="conj-table">
+                <thead><tr><th>Meaning</th><th>Tamil Form</th></tr></thead>
+                <tbody id="conj-table-body"></tbody>
+            </table>
+        </div>
+        <div id="conj-card-view" class="conj-card-view">
+            <div class="conj-progress">Pattern <span id="conj-current">1</span> of <span id="conj-total">17</span></div>
+            <div class="conj-flashcard" onclick="revealConjAnswer()">
+                <div class="conj-verb-hint" id="conj-verb-hint"></div>
+                <div class="conj-meaning-display" id="conj-meaning-display"></div>
+                <div class="conj-answer-display hidden" id="conj-answer-display"></div>
+                <div class="conj-tap-hint" id="conj-tap-hint">Tap to reveal</div>
+            </div>
+            <div class="conj-nav">
+                <button class="btn" onclick="prevConj()">←</button>
+                <button class="conj-shuffle-btn" onclick="shuffleConj()">🔀 Shuffle</button>
+                <button class="btn" onclick="nextConj()">→</button>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -1149,6 +1315,7 @@
         document.getElementById('area-match').style.display = 'none';
         document.getElementById('area-fill').style.display = 'none';
         document.getElementById('area-list').style.display = 'none';
+        document.getElementById('area-conj').style.display = 'none';
 
         if(mode === 'flash') {
             document.getElementById('area-flash').style.display = 'block';
@@ -1168,6 +1335,9 @@
         } else if (mode === 'list') {
             document.getElementById('area-list').style.display = 'flex';
             generateVocabList();
+        } else if (mode === 'conj') {
+            document.getElementById('area-conj').style.display = 'flex';
+            initConjMode();
         }
     }
 
@@ -2247,6 +2417,149 @@
         const msg = document.getElementById('admin-msg');
         msg.className = 'admin-msg success';
         msg.innerText = `Downloaded! Rename to tamil_words.js and upload to GitHub.`;
+    }
+
+
+    // ============================================================
+    // CONJUGATION MODE
+    // ============================================================
+
+    const conjugationPatterns = [
+        {meaning:"Want to",             suffix:"anum"},
+        {meaning:"Don't want to",       suffix:"a Vendam"},
+        {meaning:"Like to",             suffix:"a Pudikum"},
+        {meaning:"Don't like to",       suffix:"a Pudikathu"},
+        {meaning:"Know how to",         suffix:"a Theriyum"},
+        {meaning:"Don't know how to",   suffix:"a Theriyathu"},
+        {meaning:"Didn't",              suffix:"ala"},
+        {meaning:"Can",                 suffix:"a Mudiyum"},
+        {meaning:"Can't",               suffix:"a Mudiyathu"},
+        {meaning:"Couldn't",            suffix:"a Mudila"},
+        {meaning:"Should have",         suffix:"irukanum"},
+        {meaning:"Could have",          suffix:"irukalam"},
+        {meaning:"Let's",               suffix:"alam",       note:"proposing; softer than -anum"},
+        {meaning:"While",               suffix:"irappo",     alt:"umbothu"},
+        {meaning:"Won't",               suffix:"a Maataen",  alt:"a Maateenga"},
+        {meaning:"Might / Would have",  suffix:"i Iruppaen"},
+        {meaning:"Never doing",         suffix:"irathu Illa"},
+    ];
+
+    // Conjugation state
+    let conjVerbs = [];        // filtered list of verb objects
+    let conjCurrentVerb = null;
+    let conjPracticeOrder = [];
+    let conjPracticeIndex = 0;
+    let conjConjView = 'study';
+
+    // Strip trailing 'u' and apply suffix
+    function conjugate(ta, suffix) {
+        const stem = ta.replace(/u\s*$/i, '');
+        return stem + suffix;
+    }
+
+    // Get all base verbs whose primary Tamil form ends in 'u'
+    function getConjugableVerbs() {
+        return data.filter(item => {
+            if (item.cat !== 'Verb' || item.type !== 'base') return false;
+            const primary = item.ta.split('/')[0].trim();
+            return /u$/i.test(primary);
+        });
+    }
+
+    function initConjMode() {
+        conjVerbs = getConjugableVerbs();
+        // Populate select only once
+        const sel = document.getElementById('conj-select');
+        if (sel.options.length === 0) {
+            conjVerbs.forEach((v, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.text = `${v.ta.split('/')[0].trim()} — ${v.en}`;
+                sel.appendChild(opt);
+            });
+        }
+        onConjVerbChange();
+    }
+
+    function onConjVerbChange() {
+        const sel = document.getElementById('conj-select');
+        const idx = parseInt(sel.value) || 0;
+        conjCurrentVerb = conjVerbs[idx];
+        const primaryTa = conjCurrentVerb.ta.split('/')[0].trim();
+        document.getElementById('conj-base-label').textContent = primaryTa;
+        document.getElementById('conj-base-en').textContent = conjCurrentVerb.en;
+        buildConjTable(primaryTa);
+        resetConjPractice(primaryTa);
+    }
+
+    function buildConjTable(ta) {
+        const tbody = document.getElementById('conj-table-body');
+        tbody.innerHTML = '';
+        conjugationPatterns.forEach(p => {
+            const form = conjugate(ta, p.suffix);
+            const altForm = p.alt ? conjugate(ta, p.alt) : null;
+            const tr = document.createElement('tr');
+            let taCell = `<div class="conj-ta">${form}</div>`;
+            if (altForm) taCell += `<div class="conj-alt">/ ${altForm}</div>`;
+            if (p.note) taCell += `<div class="conj-note">${p.note}</div>`;
+            tr.innerHTML = `<td>${p.meaning}</td><td>${taCell}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function setConjView(view) {
+        conjConjView = view;
+        document.getElementById('btn-conj-study').classList.toggle('active', view === 'study');
+        document.getElementById('btn-conj-practice').classList.toggle('active', view === 'practice');
+        document.getElementById('conj-table-view').style.display = view === 'study' ? 'block' : 'none';
+        document.getElementById('conj-card-view').style.display = view === 'practice' ? 'flex' : 'none';
+    }
+
+    function resetConjPractice(ta) {
+        conjPracticeOrder = conjugationPatterns.map((_, i) => i);
+        conjPracticeIndex = 0;
+        loadConjCard(ta);
+    }
+
+    function shuffleConj() {
+        conjPracticeOrder.sort(() => Math.random() - 0.5);
+        conjPracticeIndex = 0;
+        const ta = conjCurrentVerb.ta.split('/')[0].trim();
+        loadConjCard(ta);
+    }
+
+    function loadConjCard(ta) {
+        const total = conjugationPatterns.length;
+        const patIdx = conjPracticeOrder[conjPracticeIndex];
+        const p = conjugationPatterns[patIdx];
+        const form = conjugate(ta, p.suffix);
+        const altForm = p.alt ? ' / ' + conjugate(ta, p.alt) : '';
+
+        document.getElementById('conj-current').textContent = conjPracticeIndex + 1;
+        document.getElementById('conj-total').textContent = total;
+        document.getElementById('conj-verb-hint').textContent = `${ta} (${conjCurrentVerb.en})`;
+        document.getElementById('conj-meaning-display').textContent = p.meaning;
+        document.getElementById('conj-answer-display').textContent = form + altForm;
+        document.getElementById('conj-answer-display').classList.add('hidden');
+        document.getElementById('conj-tap-hint').style.opacity = '1';
+    }
+
+    function revealConjAnswer() {
+        const ans = document.getElementById('conj-answer-display');
+        if (ans.classList.contains('hidden')) {
+            ans.classList.remove('hidden');
+            document.getElementById('conj-tap-hint').style.opacity = '0';
+        }
+    }
+
+    function nextConj() {
+        conjPracticeIndex = (conjPracticeIndex + 1) % conjugationPatterns.length;
+        loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
+    }
+
+    function prevConj() {
+        conjPracticeIndex = (conjPracticeIndex - 1 + conjugationPatterns.length) % conjugationPatterns.length;
+        loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
     }
 
 </script>
