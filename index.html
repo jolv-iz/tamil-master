@@ -892,6 +892,7 @@
             <div class="conj-nav">
                 <button class="btn" onclick="prevConj()">←</button>
                 <button class="conj-shuffle-btn" onclick="shuffleConj()">🔀 Shuffle</button>
+                <button class="btn" id="conj-reveal-btn" onclick="revealConjAnswer()" style="background:#FF9800;">Reveal</button>
                 <button class="btn" id="conj-check-btn" onclick="checkConjAnswer()">Check</button>
                 <button class="btn" onclick="nextConj()">→</button>
             </div>
@@ -2560,7 +2561,7 @@
 
         document.getElementById('conj-current').textContent = conjMixIndex + 1;
         document.getElementById('conj-total').textContent = conjMixQueue.length;
-        document.getElementById('conj-verb-hint').textContent = `${ta} (${verb.en})`;
+        document.getElementById('conj-verb-hint').textContent = verb.en;
         document.getElementById('conj-meaning-display').textContent = p.meaning;
 
         const inputEl = document.getElementById('conj-input');
@@ -2571,6 +2572,7 @@
         document.getElementById('conj-feedback').className = 'conj-feedback';
         document.getElementById('conj-correct-answer').textContent = '';
         document.getElementById('conj-check-btn').disabled = false;
+        document.getElementById('conj-reveal-btn').disabled = false;
         setTimeout(() => inputEl.focus(), 50);
     }
 
@@ -2591,7 +2593,7 @@
 
         document.getElementById('conj-current').textContent = conjPracticeIndex + 1;
         document.getElementById('conj-total').textContent = conjugationPatterns.length;
-        document.getElementById('conj-verb-hint').textContent = `${ta} (${conjCurrentVerb.en})`;
+        document.getElementById('conj-verb-hint').textContent = conjCurrentVerb.en;
         document.getElementById('conj-meaning-display').textContent = p.meaning;
 
         const inputEl = document.getElementById('conj-input');
@@ -2602,6 +2604,7 @@
         document.getElementById('conj-feedback').className = 'conj-feedback';
         document.getElementById('conj-correct-answer').textContent = '';
         document.getElementById('conj-check-btn').disabled = false;
+        document.getElementById('conj-reveal-btn').disabled = false;
         setTimeout(() => inputEl.focus(), 50);
     }
 
@@ -2638,6 +2641,24 @@
 
         inputEl.disabled = true;
         document.getElementById('conj-check-btn').disabled = true;
+        document.getElementById('conj-reveal-btn').disabled = true;
+    }
+
+    function revealConjAnswer() {
+        const ta = conjCurrentVerb.ta.split('/')[0].trim();
+        const patIdx = conjPracticeOrder[conjPracticeIndex];
+        const p = conjugationPatterns[patIdx];
+        const correct = conjugate(ta, p.suffix);
+        const altStr = p.alt ? ` / ${conjugate(ta, p.alt)}` : '';
+
+        const correctAns = document.getElementById('conj-correct-answer');
+        correctAns.textContent = `${ta} → ${correct}${altStr}`;
+
+        const inputEl = document.getElementById('conj-input');
+        inputEl.disabled = true;
+        document.getElementById('conj-check-btn').disabled = true;
+        document.getElementById('conj-reveal-btn').disabled = true;
+        document.getElementById('conj-feedback').textContent = '';
     }
 
     function nextConj() {
