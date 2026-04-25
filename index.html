@@ -870,6 +870,7 @@
         <div class="conj-submode">
             <button id="btn-conj-study" class="mode-btn active" onclick="setConjView('study')">Study Table</button>
             <button id="btn-conj-practice" class="mode-btn" onclick="setConjView('practice')">Practice</button>
+            <button id="btn-conj-mix" class="mode-btn" onclick="setConjView('mix')">Mix All</button>
         </div>
         <div id="conj-table-view" class="conj-table-view">
             <table class="conj-table">
@@ -2458,6 +2459,8 @@
     let conjPracticeOrder = [];
     let conjPracticeIndex = 0;
     let conjConjView = 'study';
+    let conjMixQueue = [];     // [{verb, patIdx}] for mix-all mode
+    let conjMixIndex = 0;
 
     // Strip trailing 'u' and apply suffix
     function conjugate(ta, suffix) {
@@ -2519,8 +2522,15 @@
         conjConjView = view;
         document.getElementById('btn-conj-study').classList.toggle('active', view === 'study');
         document.getElementById('btn-conj-practice').classList.toggle('active', view === 'practice');
+        document.getElementById('btn-conj-mix').classList.toggle('active', view === 'mix');
         document.getElementById('conj-table-view').style.display = view === 'study' ? 'block' : 'none';
-        document.getElementById('conj-card-view').style.display = view === 'practice' ? 'flex' : 'none';
+        document.getElementById('conj-card-view').style.display = (view === 'practice' || view === 'mix') ? 'flex' : 'none';
+        // show/hide verb selector — not needed in mix mode
+        document.querySelector('.conj-verb-selector').style.display = view === 'mix' ? 'none' : 'flex';
+        if (view === 'mix') {
+            buildMixQueue();
+            loadMixCard();
+        }
     }
 
     function resetConjPractice(ta) {
@@ -2529,11 +2539,50 @@
         loadConjCard(ta);
     }
 
-    function shuffleConj() {
-        conjPracticeOrder.sort(() => Math.random() - 0.5);
+    function buildMixQueue(count = 50) {
+        conjMixQueue = [];
+        for (let i = 0; i < count; i++) {
+            const verb = conjVerbs[Math.floor(Math.random() * conjVerbs.length)];
+            const patIdx = Math.floor(Math.random() * conjugationPatterns.length);
+            conjMixQueue.push({verb, patIdx});
+        }
+        conjMixIndex = 0;
+    }
+
+    function loadMixCard() {
+        const {verb, patIdx} = conjMixQueue[conjMixIndex];
+        const ta = verb.ta.split('/')[0].trim();
+        const p = conjugationPatterns[patIdx];
+        // wire into shared state so checkConjAnswer works unchanged
+        conjCurrentVerb = verb;
+        conjPracticeOrder = [patIdx];
         conjPracticeIndex = 0;
-        const ta = conjCurrentVerb.ta.split('/')[0].trim();
-        loadConjCard(ta);
+
+        document.getElementById('conj-current').textContent = conjMixIndex + 1;
+        document.getElementById('conj-total').textContent = conjMixQueue.length;
+        document.getElementById('conj-verb-hint').textContent = `${ta} (${verb.en})`;
+        document.getElementById('conj-meaning-display').textContent = p.meaning;
+
+        const inputEl = document.getElementById('conj-input');
+        inputEl.value = '';
+        inputEl.className = 'conj-input';
+        inputEl.disabled = false;
+        document.getElementById('conj-feedback').textContent = '';
+        document.getElementById('conj-feedback').className = 'conj-feedback';
+        document.getElementById('conj-correct-answer').textContent = '';
+        document.getElementById('conj-check-btn').disabled = false;
+        setTimeout(() => inputEl.focus(), 50);
+    }
+
+    function shuffleConj() {
+        if (conjConjView === 'mix') {
+            buildMixQueue();
+            loadMixCard();
+        } else {
+            conjPracticeOrder.sort(() => Math.random() - 0.5);
+            conjPracticeIndex = 0;
+            loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
+        }
     }
 
     function loadConjCard(ta) {
@@ -2592,13 +2641,23 @@
     }
 
     function nextConj() {
-        conjPracticeIndex = (conjPracticeIndex + 1) % conjugationPatterns.length;
-        loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
+        if (conjConjView === 'mix') {
+            conjMixIndex = (conjMixIndex + 1) % conjMixQueue.length;
+            loadMixCard();
+        } else {
+            conjPracticeIndex = (conjPracticeIndex + 1) % conjugationPatterns.length;
+            loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
+        }
     }
 
     function prevConj() {
-        conjPracticeIndex = (conjPracticeIndex - 1 + conjugationPatterns.length) % conjugationPatterns.length;
-        loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
+        if (conjConjView === 'mix') {
+            conjMixIndex = (conjMixIndex - 1 + conjMixQueue.length) % conjMixQueue.length;
+            loadMixCard();
+        } else {
+            conjPracticeIndex = (conjPracticeIndex - 1 + conjugationPatterns.length) % conjugationPatterns.length;
+            loadConjCard(conjCurrentVerb.ta.split('/')[0].trim());
+        }
     }
 
 </script>
