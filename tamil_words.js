@@ -1,6 +1,6 @@
 // Tamil Master Vocabulary Database
 // Last updated: 2026-04-13
-// Total words: 403
+// Total words: 421
 // Verb data cleaned and enhanced with grammar metadata:
 //   - 70 verb conjugations with full grammar structure
 //   - 3 verb types: regular, dative-stative, modal-auxiliary-dative-stative
@@ -409,7 +409,27 @@ const data = [
 
     // Adjectives
     {id:303, en:"Favourite", ta:"Pudicha", pron:"", cat:"Adjective"},
-    {id:304, en:"Fear", ta:"Bayam", pron:"", cat:"Abstract"}
+    {id:304, en:"Fear", ta:"Bayam", pron:"", cat:"Abstract"},
+
+    // New words
+    {id:404, en:"Difficult", ta:"Kashtam", pron:"", cat:"Adjective"},
+    {id:405, en:"Sunny", ta:"Vaeyil", pron:"", cat:"Adjective"},
+    {id:406, en:"Half", ta:"Paathi", pron:"", cat:"Adjective"},
+    {id:407, en:"Left over", ta:"Methi", pron:"", cat:"Adjective"},
+    {id:408, en:"Near to home", ta:"Veetu-kitta", pron:"", cat:"Location"},
+    {id:409, en:"Clothes", ta:"Thuni", pron:"", cat:"Noun"},
+    {id:410, en:"Daily", ta:"Dhinamum", pron:"", cat:"Adverb/Time"},
+    {id:411, en:"If there is / If it's there", ta:"Irundha", pron:"", cat:"Connector"},
+    {id:412, en:"Same", ta:"Orae Mathiri", pron:"", cat:"Adjective"},
+    {id:413, en:"What else", ta:"Vera Yenna", pron:"", cat:"Question Word"},
+    {id:414, en:"Frequent / Often", ta:"Adikadi", pron:"", cat:"Adverb/Time"},
+    {id:415, en:"Few times / Sometimes", ta:"Sila Thavada", pron:"", cat:"Adverb/Time"},
+    {id:416, en:"In a year", ta:"Varushathula", pron:"", cat:"Adverb/Time"},
+    {id:417, en:"This much", ta:"Ivlo", pron:"", cat:"Adjective"},
+    {id:418, en:"Till / Still", ta:"Innum", pron:"", cat:"Connector"},
+    {id:419, en:"Won't be / Don't be", ta:"Irukathu", pron:"", cat:"Verb", type:"base"},
+    {id:420, en:"Sometimes", ta:"Eppaiyavathu", pron:"", cat:"Adverb/Time"},
+    {id:421, en:"Always", ta:"Eppaiyumae", pron:"", cat:"Adverb/Time"}
 ];
 
 // Opposite pairs for matching game
