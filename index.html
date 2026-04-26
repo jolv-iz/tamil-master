@@ -2435,23 +2435,46 @@
     // ============================================================
 
     const conjugationPatterns = [
-        {meaning:"Want to",             suffix:"anum"},
-        {meaning:"Don't want to",       suffix:"a Vendam"},
-        {meaning:"Like to",             suffix:"a Pudikum"},
-        {meaning:"Don't like to",       suffix:"a Pudikathu"},
-        {meaning:"Know how to",         suffix:"a Theriyum"},
-        {meaning:"Don't know how to",   suffix:"a Theriyathu"},
-        {meaning:"Didn't",              suffix:"ala"},
-        {meaning:"Can",                 suffix:"a Mudiyum"},
-        {meaning:"Can't",               suffix:"a Mudiyathu"},
-        {meaning:"Couldn't",            suffix:"a Mudila"},
-        {meaning:"Should have",         suffix:"irukanum"},
-        {meaning:"Could have",          suffix:"irukalam"},
-        {meaning:"Let's",               suffix:"alam",       note:"proposing; softer than -anum"},
-        {meaning:"While",               suffix:"irappo",     alt:"umbothu"},
-        {meaning:"Won't",               suffix:"a Maataen",  alt:"a Maateenga"},
-        {meaning:"Might / Would have",  suffix:"i Iruppaen"},
-        {meaning:"Never doing",         suffix:"irathu Illa"},
+        // Desire / Preference
+        {meaning:"Want to",                 suffix:"anum"},
+        {meaning:"Don't want to",           suffix:"a Vendam"},
+        {meaning:"Like to",                 suffix:"a Pudikum"},
+        {meaning:"Don't like to",           suffix:"a Pudikathu"},
+        // Ability / Knowledge
+        {meaning:"Know how to",             suffix:"a Theriyum"},
+        {meaning:"Don't know how to",       suffix:"a Theriyathu"},
+        {meaning:"Can",                     suffix:"a Mudiyum"},
+        {meaning:"Can't",                   suffix:"a Mudiyathu"},
+        {meaning:"Couldn't",                suffix:"a Mudila"},
+        // Prohibition / Command
+        {meaning:"Don't / Doesn't",         suffix:"a Kudathu"},
+        {meaning:"Don't (command, formal)", suffix:"adheenga"},
+        {meaning:"Do it! (command)",        suffix:"unga"},
+        // Past
+        {meaning:"Didn't",                  suffix:"ala"},
+        {meaning:"Emphatic didn't",         suffix:"avae Illa"},
+        {meaning:"Never done",              suffix:"inaethae Illa"},
+        {meaning:"Was doing (I)",           suffix:"ittu Irundhaen",  note:"Irundheenga (you), Irundhaaru (he/she)"},
+        {meaning:"Could have",              suffix:"irukalam"},
+        {meaning:"Should have",             suffix:"irukanum"},
+        // Present / Continuous
+        {meaning:"Am doing (I)",            suffix:"ittu Irukaen",    note:"Irukeenga (you), Irukaan (he)"},
+        {meaning:"Have been doing (you)",   suffix:"i Irukeenga"},
+        // Future / Intention
+        {meaning:"Let's / Will",            suffix:"alam",            note:"proposing; softer than -anum"},
+        {meaning:"Won't",                   suffix:"a Maataen",       alt:"a Maateenga",  note:"Maataaru (he), Maataanga (they), Maatom (we)"},
+        {meaning:"Might / Would have",      suffix:"i Iruppaen",      note:"Iruppeenga (you), Iruppaanga (they)"},
+        // Negation
+        {meaning:"Never doing",             suffix:"irathu Illa"},
+        // Contextual forms
+        {meaning:"While",                   suffix:"irappo",          alt:"umbothu"},
+        {meaning:"If",                      suffix:"ina"},
+        {meaning:"Even though",             suffix:"iranallum",       alt:"inalum"},
+        {meaning:"Doing (gerund)",          suffix:"irathu"},
+        {meaning:"Before doing",            suffix:"irathuku Munnadi"},
+        {meaning:"After doing",             suffix:"irathuku Apram"},
+        {meaning:"For / In order to",       suffix:"irathukaga"},
+        {meaning:"In the doing",            suffix:"athula"},
     ];
 
     // Conjugation state
