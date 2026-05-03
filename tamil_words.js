@@ -429,7 +429,21 @@ const data = [
     {id:418, en:"Till / Still", ta:"Innum", pron:"", cat:"Connector"},
     {id:419, en:"Won't be / Don't be", ta:"Irukathu", pron:"", cat:"Verb", type:"base"},
     {id:420, en:"Sometimes", ta:"Eppaiyavathu", pron:"", cat:"Adverb/Time"},
-    {id:421, en:"Always", ta:"Eppaiyumae", pron:"", cat:"Adverb/Time"}
+    {id:421, en:"Always", ta:"Eppaiyumae", pron:"", cat:"Adverb/Time"},
+    {id:422, en:"Forgot", ta:"Maranthu", pron:"", cat:"Verb", type:"base"},
+    {id:423, en:"It's okay", ta:"Paravala", pron:"", cat:"Abstract"},
+    {id:424, en:"Can you?", ta:"Mudiyuma?", pron:"", cat:"Question Word"},
+    {id:425, en:"Is it? / Like that?", ta:"Appadiya?", pron:"", cat:"Question Word"},
+    {id:426, en:"Like this?", ta:"Ippadiya?", pron:"", cat:"Question Word"},
+    {id:427, en:"All / Everything", ta:"Ellam", pron:"", cat:"Pronoun"},
+    {id:428, en:"Everyone", ta:"Ellarum", pron:"", cat:"Pronoun"},
+    {id:429, en:"Should be", ta:"Irukanum", pron:"", cat:"Verb", type:"base"},
+    {id:430, en:"Could be", ta:"Irukalam", pron:"", cat:"Verb", type:"base"},
+    {id:431, en:"May be", ta:"Irudhalum Irukalam / Irukum", pron:"", cat:"Verb", type:"base"},
+    {id:432, en:"Don't need", ta:"Thaevai Illa", pron:"", cat:"Abstract"},
+    {id:433, en:"Need", ta:"Thaevai Iruku", pron:"", cat:"Abstract"},
+    {id:434, en:"Head", ta:"Thalai", pron:"", cat:"Noun"},
+    {id:435, en:"Hair", ta:"Mudi", pron:"", cat:"Noun"}
 ];
 
 // Opposite pairs for matching game

@@ -30,7 +30,7 @@ A single-page Tamil language learning game for children. No backend, no build st
 - `cat`: category string used for filtering (see categories below)
 - `type`: `"base"` for simple vocab; `"conjugation"` for full verb forms (has extra `grammar` field)
 
-**Current highest ID: 403** (update this comment when adding words)
+**Current highest ID: 435** (update this comment when adding words)
 
 ### Word categories in use
 `Time`, `Time/Food`, `Family`, `Family-Extended`, `Question Word`, `Pronoun`, `Direction`, `Adjective`, `Adverb`, `Adverb/Place`, `Adverb/Time`, `Taste`, `Location`, `Noun`, `Abstract`, `Postposition`, `Connector`, `Greeting`, `Color`, `Day`, `Verb`
