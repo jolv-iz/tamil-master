@@ -123,30 +123,41 @@ weight = (revealCount × 2 + wrongCount × 0.5) / (correctCount + 1)
 
 ## Common Tasks & How to Do Them
 
-### Add new vocabulary words (from class notes paste)
+### Updating from new class notes (ALWAYS do both files)
 
-User typically pastes notes in this format — multiple separators are normal, treat them all the same:
+When the user pastes class notes, **always update both `tamil_words.js` and `notes.html` in the same pass**. Never update one without the other.
+
+**What goes where:**
+| Content type | `tamil_words.js` | `notes.html` |
+|---|---|---|
+| New vocab words | ✅ Add to `data` array | ✅ Add to matching vocab section |
+| New verbs | ✅ Add to `data` array | ✅ Add row to verb table in `#vocab-verbs` |
+| Grammar rules / tables | ✗ | ✅ Add/update matching grammar section |
+| Conjugation tables | ✗ | ✅ Add table to `#grammar-conjugations` |
+| Example sentences | ✗ | ✅ Add to matching examples section |
+| Postpositions | ✗ | ✅ Add row to `#postpositions-table` |
+
+**Finish every session with:** `git add tamil_words.js notes.html && git commit && git push` — this keeps the live site at `https://jolv-iz.github.io/tamil-master/notes.html` in sync.
+
+---
+
+### Step-by-step: adding vocab to `tamil_words.js`
+
+User typically pastes notes in these formats — all treated the same:
 ```
 Word = Translation
 Word - Translation
 Word: Translation
-Word  Translation        ← tab or multiple spaces
 Word (context) = Translation
 ```
 
-**Step-by-step:**
-1. Note current highest ID from this line: **Current highest ID: 435**
-2. Grep for potential duplicates before adding: `grep -i "tamil_form\|english_label" tamil_words.js`
-3. Append new entries to `data` array, incrementing IDs from highest
-4. Update the **Current highest ID** line above
-5. Run `node -e "..." ` quick syntax check (see below)
+1. Check current highest ID: **Current highest ID: 435**
+2. Grep for duplicates first: `grep -i "TAMIL_WORD" tamil_words.js`
+3. Append new entries to `data` array, incrementing IDs
+4. Update **Current highest ID** above
+5. Syntax check: `node -e "const fs=require('fs');eval(fs.readFileSync('tamil_words.js','utf8').replace('const ','global.'));console.log(data.length,'words, last id:',data[data.length-1].id)"`
 
-**Quick syntax check:**
-```bash
-node -e "const fs=require('fs');eval(fs.readFileSync('tamil_words.js','utf8').replace('const ','global.'));console.log(data.length,'words, last id:',data[data.length-1].id)"
-```
-
-**Category quick-reference** (pick the best fit):
+**Category quick-reference:**
 | Category | Use for |
 |----------|---------|
 | `Verb` + `type:"base"` | Action words (base/dictionary form) |
@@ -166,26 +177,34 @@ node -e "const fs=require('fs');eval(fs.readFileSync('tamil_words.js','utf8').re
 | `Family` | Immediate family |
 | `Family-Extended` | Extended family |
 
-**Notes on edge cases:**
-- Same Tamil word for two English meanings → one entry, combined `en` e.g. `"All / Everything"`
-- Two Tamil forms for one meaning → slash in `ta` field: `"Thaa / Kudu"`
-- Must-form/obligation form → put in `pron` field: `"Paarkanum"`
+**Edge cases:**
+- Same Tamil word for two English meanings → one entry: `en:"All / Everything"`
+- Two Tamil forms for one meaning → slash in `ta`: `"Thaa / Kudu"`
+- Must-form/obligation form → put in `pron`: `"Paarkanum"`
 - Particles/suffixes (la, na, ku) → `Postposition` or `Conjunction`
-- Verbal phrases (Thaevai Iruku, Irukathu) → `Abstract` if noun-like, `Verb`+`type:"base"` if action-like
+- Verbal phrases → `Abstract` if noun-like, `Verb`+`type:"base"` if action-like
 
-### Update notes.html from new class notes
+---
 
-`notes.html` is a standalone structured reference file (open in browser). Update it whenever the user pastes new class notes alongside vocab additions.
+### Step-by-step: adding content to `notes.html`
 
-**Section IDs for targeted edits** (use `grep -n 'id="...'` to find line numbers):
-- Grammar rules: `#grammar-sentence-structure`, `#grammar-to-be`, `#grammar-pronouns`, `#grammar-have`, `#grammar-special-verbs`, `#grammar-verb-categories`, `#grammar-conjugations`, `#grammar-compound`, `#grammar-extended-forms`, `#grammar-demonstratives`
-- `#postpositions-table` — add `<tr>` rows for new postpositions
-- Vocab sections: `#vocab-greetings`, `#vocab-questions`, `#vocab-pronouns`, `#vocab-family`, `#vocab-time`, `#vocab-numbers`, `#vocab-colors`, `#vocab-days`, `#vocab-connectors`, `#vocab-modal`, `#vocab-verbs`, `#vocab-adjectives`, `#vocab-nouns`
-- Example sections: `#examples-location`, `#examples-possession`, `#examples-special-verbs`, `#examples-modal`, `#examples-verb-sentences`, `#examples-postpositions`, `#examples-long`
+`notes.html` is the live structured reference at `https://jolv-iz.github.io/tamil-master/notes.html`. Always update it alongside `tamil_words.js`.
 
-**Adding vocab to notes.html:** append `<dt>TamilWord</dt><dd>English meaning</dd>` inside the relevant `<dl>` block.
-**Adding a new conjugation verb:** copy an existing `<table>` block in `#grammar-conjugations` and update it.
-**Adding example sentences:** append `<dt>Tamil sentence.</dt><dd>English translation.</dd>` to the relevant examples section.
+**Finding sections fast:** `grep -n 'id="SECTION_ID"' notes.html`
+
+**Section IDs:**
+- Grammar: `grammar-sentence-structure` · `grammar-to-be` · `grammar-pronouns` · `grammar-have` · `grammar-special-verbs` · `grammar-verb-categories` · `grammar-conjugations` · `grammar-compound` · `grammar-extended-forms` · `grammar-demonstratives`
+- Postpositions: `postpositions-table`
+- Vocab: `vocab-greetings` · `vocab-questions` · `vocab-pronouns` · `vocab-family` · `vocab-time` · `vocab-numbers` · `vocab-colors` · `vocab-days` · `vocab-connectors` · `vocab-modal` · `vocab-verbs` · `vocab-adjectives` · `vocab-nouns`
+- Examples: `examples-location` · `examples-possession` · `examples-special-verbs` · `examples-modal` · `examples-verb-sentences` · `examples-postpositions` · `examples-long`
+
+**Snippets:**
+- Add vocab item: `<dt>Tamil</dt><dd>English</dd>` inside `<dl>` of the right section
+- Add verb row: `<tr><td>#</td><td>English</td><td>Tamil</td><td>Must-form</td></tr>` in `#vocab-verbs` table
+- Add grammar rule: `<div class="rule">Rule text<br><span class="eg">Example</span></div>`
+- Add conjugation table: copy an existing `<table>` block in `#grammar-conjugations` and update
+- Add example: `<dt>Tamil sentence.</dt><dd>English translation.</dd>` in right examples section
+- Add new section: use `<!-- SECTION: id -->` comment + `<section id="...">` pattern
 
 ### Add a new game mode
 - Add a nav button in the `<nav>` section of `index.html` (around line 611)
