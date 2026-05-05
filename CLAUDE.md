@@ -30,7 +30,7 @@ A single-page Tamil language learning game for children. No backend, no build st
 - `cat`: category string used for filtering (see categories below)
 - `type`: `"base"` for simple vocab; `"conjugation"` for full verb forms (has extra `grammar` field)
 
-**Current highest ID: 435** (update this comment when adding words)
+**Current highest ID: 441** (update this comment when adding words)
 
 ### Word categories in use
 `Time`, `Time/Food`, `Family`, `Family-Extended`, `Question Word`, `Pronoun`, `Direction`, `Adjective`, `Adverb`, `Adverb/Place`, `Adverb/Time`, `Taste`, `Location`, `Noun`, `Abstract`, `Postposition`, `Connector`, `Greeting`, `Color`, `Day`, `Verb`
@@ -161,7 +161,7 @@ Word: Translation
 Word (context) = Translation
 ```
 
-1. Check current highest ID: **Current highest ID: 435**
+1. Check current highest ID: **Current highest ID: 441**
 2. Grep for duplicates first: `grep -i "TAMIL_WORD" tamil_words.js`
 3. Append new entries to `data` array, incrementing IDs
 4. Update **Current highest ID** above
