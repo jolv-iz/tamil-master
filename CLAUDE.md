@@ -125,9 +125,17 @@ weight = (revealCount × 2 + wrongCount × 0.5) / (correctCount + 1)
 
 ### Updating from new class notes (ALWAYS do both files)
 
-When the user pastes class notes, **always update both `tamil_words.js` and `notes.html` in the same pass**. Never update one without the other.
+Class notes arrive in **any format** — a raw vocab list, a block of example sentences, a grammar explanation, a mixed dump, or just a few lines. Parse the content first, then route each piece.
 
-**What goes where:**
+**Step 1 — Parse: identify what's in the paste**
+- Tamil = English pairs (any separator: `=`, `-`, `:`, `→`, tab) → **vocab**
+- Numbered/bulleted Tamil words with English → **vocab**
+- Tamil sentences with English translations → **example sentences**
+- Prose explaining a rule, pattern, or structure → **grammar rule**
+- A conjugation grid or tense table → **conjugation table**
+- A postposition / particle with suffix shown → **postposition**
+
+**Step 2 — Route each piece to the right place:**
 | Content type | `tamil_words.js` | `notes.html` |
 |---|---|---|
 | New vocab words | ✅ Add to `data` array | ✅ Add to matching vocab section |
@@ -137,7 +145,9 @@ When the user pastes class notes, **always update both `tamil_words.js` and `not
 | Example sentences | ✗ | ✅ Add to matching examples section |
 | Postpositions | ✗ | ✅ Add row to `#postpositions-table` |
 
-**Finish every session with:** `git add tamil_words.js notes.html && git commit && git push` — this keeps the live site at `https://jolv-iz.github.io/tamil-master/notes.html` in sync.
+**Step 3 — If a section doesn't exist yet in notes.html**, create it using the `<!-- SECTION: id -->` + `<section id="...">` pattern. Add its ID to the section ID list below.
+
+**Finish every session with:** `git add tamil_words.js notes.html && git commit && git push` — keeps the live site at `https://jolv-iz.github.io/tamil-master/notes.html` in sync.
 
 ---
 
