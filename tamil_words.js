@@ -449,7 +449,11 @@ const data = [
     {id:438, en:"No one", ta:"Yaarumae", pron:"", cat:"Pronoun"},
     {id:439, en:"Until / Till", ta:"Varaikum", pron:"", cat:"Connector"},
     {id:440, en:"30", ta:"Moopathu", pron:"", cat:"Number"},
-    {id:441, en:"Rain / Mountain", ta:"Malai", pron:"", cat:"Noun"}
+    {id:441, en:"Rain / Mountain", ta:"Malai", pron:"", cat:"Noun"},
+    {id:442, en:"Last month", ta:"Ponna Maasam", pron:"", cat:"Adverb/Time"},
+    {id:443, en:"If not", ta:"Ilana", pron:"", cat:"Connector"},
+    {id:444, en:"Soon / Quick", ta:"Seikaram", pron:"", cat:"Adverb"},
+    {id:445, en:"Small / Kid", ta:"Kutty", pron:"", cat:"Adjective"}
 ];
 
 // Opposite pairs for matching game
