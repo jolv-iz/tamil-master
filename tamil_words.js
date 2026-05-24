@@ -453,7 +453,29 @@ const data = [
     {id:442, en:"Last month", ta:"Ponna Maasam", pron:"", cat:"Adverb/Time"},
     {id:443, en:"If not", ta:"Ilana", pron:"", cat:"Connector"},
     {id:444, en:"Soon / Quick", ta:"Seikaram", pron:"", cat:"Adverb"},
-    {id:445, en:"Small / Kid", ta:"Kutty", pron:"", cat:"Adjective"}
+    {id:445, en:"Small / Kid", ta:"Kutty", pron:"", cat:"Adjective"},
+    {id:446, en:"Nearby", ta:"Pakkathula", pron:"", cat:"Adverb/Place"},
+    {id:447, en:"Distance", ta:"Dhooram", pron:"", cat:"Noun"},
+    {id:448, en:"Half / Room / Slap", ta:"Arai", pron:"", cat:"Noun"},
+    {id:449, en:"Quarter / 15 mins", ta:"Kaal", pron:"", cat:"Time"},
+    {id:450, en:"Three-quarters / 45 mins", ta:"Mukkaal", pron:"", cat:"Time"},
+    {id:451, en:"20", ta:"Irvathu", pron:"", cat:"Number"},
+    {id:452, en:"40", ta:"Naarpathu", pron:"", cat:"Number"},
+    {id:453, en:"50", ta:"Aaimbathu", pron:"", cat:"Number"},
+    {id:454, en:"60", ta:"Aaruvathu", pron:"", cat:"Number"},
+    {id:455, en:"70", ta:"Yeluvathu", pron:"", cat:"Number"},
+    {id:456, en:"80", ta:"Yenbathu", pron:"", cat:"Number"},
+    {id:457, en:"90", ta:"Thonooru", pron:"", cat:"Number"},
+    {id:458, en:"100", ta:"Nooru", pron:"", cat:"Number"},
+    {id:459, en:"Milk", ta:"Pal", pron:"", cat:"Noun"},
+    {id:460, en:"Lentils", ta:"Paruppu", pron:"", cat:"Noun"},
+    {id:461, en:"Will go and come back", ta:"Poittu Varan", pron:"", cat:"Verb", type:"base"},
+    {id:462, en:"Only", ta:"Thaan / Mattum", pron:"", cat:"Adverb"},
+    {id:463, en:"Hungry", ta:"Pasikuthu", pron:"", cat:"Abstract"},
+    {id:464, en:"Not Hungry", ta:"Pasikala", pron:"", cat:"Abstract"},
+    {id:465, en:"At what time", ta:"Ethana Maniku", pron:"", cat:"Question Word"},
+    {id:466, en:"Angry", ta:"Kovam", pron:"", cat:"Adjective"},
+    {id:467, en:"Complete / Finish", ta:"Mudi", pron:"Mudikanum", cat:"Verb", type:"base"}
 ];
 
 // Opposite pairs for matching game
